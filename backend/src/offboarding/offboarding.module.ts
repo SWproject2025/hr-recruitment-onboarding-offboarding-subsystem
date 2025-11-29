@@ -1,25 +1,18 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { OffboardingController } from './offboarding.controller';
 import { OffboardingService } from './offboarding.service';
-import {
-  OffboardingCase,
-  OffboardingCaseSchema,
-} from './schemas/offboarding-case.schema';
-import {
-  OffboardingTask,
-  OffboardingTaskSchema,
-} from './schemas/offboarding-task.schema';
+
+import { Termination } from './entities/termination.entity';
+import { ClearanceChecklist } from './entities/clearance-checklist.entity';
+import { ClearanceItem } from './entities/clearance-item.entity';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: OffboardingCase.name, schema: OffboardingCaseSchema },
-      { name: OffboardingTask.name, schema: OffboardingTaskSchema },
-    ]),
+    TypeOrmModule.forFeature([Termination, ClearanceChecklist, ClearanceItem]),
   ],
   controllers: [OffboardingController],
   providers: [OffboardingService],
-  exports: [OffboardingService],
 })
 export class OffboardingModule {}
