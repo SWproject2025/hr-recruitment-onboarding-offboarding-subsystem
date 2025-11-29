@@ -9,14 +9,15 @@ import {
   HttpStatus,
   BadRequestException,
 } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { PayrollTrackingService } from './payroll-tracking.service';
 import { PayslipQueryDto } from './dto/payslips/payslip-query.dto';
 import { PayslipDownloadDto } from './dto/payslips/payslip-download.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { CurrentUser, CurrentUserData } from '../auth/decorators/current-user.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUserData } from '../auth/decorators/current-user.decorator';
 import { SystemRole } from '../employee-profile/enums/employee-profile.enums';
 
 @Controller('payroll-tracking')
@@ -71,18 +72,22 @@ export class PayrollTrackingController {
     @Query() downloadDto: PayslipDownloadDto,
     @Res() res: Response,
   ) {
-    const result = await this.payrollTrackingService.downloadPayslip(
+    const pdfBuffer = await this.payrollTrackingService.downloadPayslip(
       user.employeeProfileId,
       payslipId,
-      downloadDto.format,
+      downloadDto.format || 'pdf',
     );
 
-    // For now, return JSON response
-    // PDF generation will be handled by PDF generator utility
-    return res.status(HttpStatus.OK).json({
-      message: 'Payslip download initiated',
-      ...result,
-    });
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=payslip-${payslipId}.pdf`,
+    );
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    // Send PDF buffer as response
+    return res.send(pdfBuffer);
   }
 
   /**
@@ -114,12 +119,12 @@ export class PayrollTrackingController {
   }
 
   /**
-   * Download tax documents for a specific year
+   * Get tax documents data for a specific year (JSON response)
    * REQ-PY-15
    */
   @Get('employee/tax-documents/:year')
   @Roles(SystemRole.DEPARTMENT_EMPLOYEE)
-  async downloadTaxDocuments(
+  async getTaxDocuments(
     @CurrentUser() user: CurrentUserData,
     @Param('year') year: string,
   ) {
@@ -131,5 +136,38 @@ export class PayrollTrackingController {
       user.employeeProfileId,
       yearNumber,
     );
+  }
+
+  /**
+   * Download tax documents as PDF for a specific year
+   * REQ-PY-15
+   */
+  @Get('employee/tax-documents/:year/download')
+  @Roles(SystemRole.DEPARTMENT_EMPLOYEE)
+  async downloadTaxDocuments(
+    @CurrentUser() user: CurrentUserData,
+    @Param('year') year: string,
+    @Res() res: Response,
+  ) {
+    const yearNumber = parseInt(year, 10);
+    if (isNaN(yearNumber)) {
+      throw new BadRequestException('Invalid year parameter');
+    }
+
+    const pdfBuffer = await this.payrollTrackingService.downloadTaxDocumentsPDF(
+      user.employeeProfileId,
+      yearNumber,
+    );
+
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=tax-document-${yearNumber}.pdf`,
+    );
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    // Send PDF buffer as response
+    return res.send(pdfBuffer);
   }
 }

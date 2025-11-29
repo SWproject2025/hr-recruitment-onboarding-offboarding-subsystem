@@ -7,6 +7,7 @@ import { payrollRuns, payrollRunsDocument } from '../payroll-execution/models/pa
 import { EmployeeProfile, EmployeeProfileDocument } from '../employee-profile/models/employee-profile.schema';
 import { PayslipQueryDto } from './dto/payslips/payslip-query.dto';
 import { PayslipDownloadDto } from './dto/payslips/payslip-download.dto';
+import { PDFGenerator } from './utils/pdf-generator';
 
 @Injectable()
 export class PayrollTrackingService {
@@ -48,16 +49,15 @@ export class PayrollTrackingService {
      * Download payslip as PDF
      * REQ-PY-1
      */
-    async downloadPayslip(employeeId: string, payslipId: string, format: string = 'pdf') {
+    async downloadPayslip(employeeId: string, payslipId: string, format: string = 'pdf'): Promise<Buffer> {
         const payslip = await this.getPayslip(employeeId, payslipId);
 
-        // For now, return the payslip data
-        // PDF generation will be handled by the PDF generator utility
-        return {
-            payslip,
-            format,
-            downloadUrl: `/payroll-tracking/employee/payslips/${payslipId}/download?format=${format}`,
-        };
+        // Generate PDF using PDF generator utility
+        if (format === 'pdf') {
+            return await PDFGenerator.generatePayslipPDF(payslip);
+        }
+
+        throw new BadRequestException(`Unsupported format: ${format}. Only PDF format is supported.`);
     }
 
     /**
@@ -314,5 +314,18 @@ export class PayrollTrackingService {
             generatedAt: new Date(),
             downloadUrl: `/payroll-tracking/employee/tax-documents/${year}/download`,
         };
+    }
+
+    /**
+     * Download tax documents as PDF for a specific year
+     * REQ-PY-15
+     */
+    async downloadTaxDocumentsPDF(employeeId: string, year: number): Promise<Buffer> {
+        // Get tax document data
+        const taxData = await this.downloadTaxDocuments(employeeId, year);
+
+        // Generate PDF using PDF generator utility
+        // Cast to any to handle type compatibility between Document and plain objects
+        return await PDFGenerator.generateTaxDocumentPDF(taxData as any);
     }
 }
