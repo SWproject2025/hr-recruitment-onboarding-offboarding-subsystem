@@ -66,6 +66,7 @@ describe('OffboardingController', () => {
     });
 
     expect(mockService.updateTerminationStatus).toHaveBeenCalledWith(
+      
       1,
       dto,
     );
