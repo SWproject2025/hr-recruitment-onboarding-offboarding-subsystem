@@ -20,6 +20,10 @@ import { RejectDisputeDto } from './dto/disputes/reject-dispute.dto';
 import { CreateClaimDto } from './dto/claims/create-claim.dto';
 import { ApproveClaimDto } from './dto/claims/approve-claim.dto';
 import { RejectClaimDto } from './dto/claims/reject-claim.dto';
+import { CreateRefundDto } from './dto/refunds/create-refund.dto';
+import { TaxReportDto } from './dto/reports/tax-report.dto';
+import { PayrollReportDto } from './dto/reports/payroll-report.dto';
+import { DepartmentReportDto } from './dto/reports/department-report.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -382,6 +386,22 @@ export class PayrollTrackingController {
     );
   }
 
+  /**
+   * Generate department payroll report
+   * REQ-PY-38
+   */
+  @Get('specialist/reports/department')
+  @Roles(SystemRole.PAYROLL_SPECIALIST)
+  async getDepartmentReport(@Query() filters: DepartmentReportDto) {
+    if (!filters.departmentId) {
+      throw new BadRequestException('Department ID is required');
+    }
+    return this.payrollTrackingService.generateDepartmentPayrollReport(
+      filters.departmentId,
+      filters,
+    );
+  }
+
   // ==================== Payroll Manager Endpoints ====================
 
   /**
@@ -465,4 +485,103 @@ export class PayrollTrackingController {
       limit: limit ? parseInt(limit, 10) : 10,
     });
   }
+
+  /**
+   * Generate refund for approved dispute
+   * REQ-PY-45
+   */
+  @Post('finance/refunds/disputes/:disputeId')
+  @Roles(SystemRole.FINANCE_STAFF)
+  async createRefundForDispute(
+    @CurrentUser() user: CurrentUserData,
+    @Param('disputeId') disputeId: string,
+    @Body() createRefundDto: CreateRefundDto,
+  ) {
+    return this.payrollTrackingService.createRefundForDispute(
+      disputeId,
+      user.employeeProfileId,
+      createRefundDto,
+    );
+  }
+
+  /**
+   * Generate refund for approved claim
+   * REQ-PY-46
+   */
+  @Post('finance/refunds/claims/:claimId')
+  @Roles(SystemRole.FINANCE_STAFF)
+  async createRefundForClaim(
+    @CurrentUser() user: CurrentUserData,
+    @Param('claimId') claimId: string,
+    @Body() createRefundDto: CreateRefundDto,
+  ) {
+    return this.payrollTrackingService.createRefundForClaim(
+      claimId,
+      user.employeeProfileId,
+      createRefundDto,
+    );
+  }
+
+  /**
+   * Generate tax report
+   * REQ-PY-25
+   */
+  @Get('finance/reports/taxes')
+  @Roles(SystemRole.FINANCE_STAFF)
+  async getTaxReport(@Query() filters: TaxReportDto) {
+    return this.payrollTrackingService.generateTaxReport(filters);
+  }
+
+  /**
+   * Generate insurance contributions report
+   * REQ-PY-25
+   */
+  @Get('finance/reports/insurance')
+  @Roles(SystemRole.FINANCE_STAFF)
+  async getInsuranceReport(@Query() filters: PayrollReportDto) {
+    return this.payrollTrackingService.generateInsuranceReport(filters);
+  }
+
+  /**
+   * Generate benefits report
+   * REQ-PY-25
+   */
+  @Get('finance/reports/benefits')
+  @Roles(SystemRole.FINANCE_STAFF)
+  async getBenefitsReport(@Query() filters: PayrollReportDto) {
+    return this.payrollTrackingService.generateBenefitsReport(filters);
+  }
+
+  /**
+   * Generate month-end summary
+   * REQ-PY-29
+   */
+  @Get('finance/reports/month-end/:month/:year')
+  @Roles(SystemRole.FINANCE_STAFF)
+  async getMonthEndSummary(
+    @Param('month') month: string,
+    @Param('year') year: string,
+  ) {
+    const monthNum = parseInt(month, 10);
+    const yearNum = parseInt(year, 10);
+    if (isNaN(monthNum) || isNaN(yearNum)) {
+      throw new BadRequestException('Invalid month or year parameter');
+    }
+    return this.payrollTrackingService.generateMonthEndSummary(monthNum, yearNum);
+  }
+
+  /**
+   * Generate year-end summary
+   * REQ-PY-29
+   */
+  @Get('finance/reports/year-end/:year')
+  @Roles(SystemRole.FINANCE_STAFF)
+  async getYearEndSummary(@Param('year') year: string) {
+    const yearNum = parseInt(year, 10);
+    if (isNaN(yearNum)) {
+      throw new BadRequestException('Invalid year parameter');
+    }
+    return this.payrollTrackingService.generateYearEndSummary(yearNum);
+  }
 }
+

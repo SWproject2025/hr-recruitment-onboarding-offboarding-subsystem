@@ -10,13 +10,18 @@ import { PayslipDownloadDto } from './dto/payslips/payslip-download.dto';
 import { PDFGenerator } from './utils/pdf-generator';
 import { disputes, disputesDocument } from './models/disputes.schema';
 import { claims, claimsDocument } from './models/claims.schema';
-import { DisputeStatus, ClaimStatus } from './enums/payroll-tracking-enum';
+import { refunds, refundsDocument } from './models/refunds.schema';
+import { DisputeStatus, ClaimStatus, RefundStatus } from './enums/payroll-tracking-enum';
 import { CreateDisputeDto } from './dto/disputes/create-dispute.dto';
 import { ApproveDisputeDto } from './dto/disputes/approve-dispute.dto';
 import { RejectDisputeDto } from './dto/disputes/reject-dispute.dto';
 import { CreateClaimDto } from './dto/claims/create-claim.dto';
 import { ApproveClaimDto } from './dto/claims/approve-claim.dto';
 import { RejectClaimDto } from './dto/claims/reject-claim.dto';
+import { CreateRefundDto } from './dto/refunds/create-refund.dto';
+import { TaxReportDto } from './dto/reports/tax-report.dto';
+import { DepartmentReportDto } from './dto/reports/department-report.dto';
+import { PayrollReportDto } from './dto/reports/payroll-report.dto';
 import { ApprovalHistoryEntry } from './models/common.schema';
 
 @Injectable()
@@ -34,6 +39,8 @@ export class PayrollTrackingService {
         private disputesModel: Model<disputesDocument>,
         @InjectModel(claims.name)
         private claimsModel: Model<claimsDocument>,
+        @InjectModel(refunds.name)
+        private refundsModel: Model<refundsDocument>,
     ) { }
 
     /**
@@ -1106,6 +1113,665 @@ export class PayrollTrackingService {
                 total,
                 totalPages: Math.ceil(total / limit),
             },
+        };
+    }
+
+    /**
+     * Generate refund for approved dispute
+     * REQ-PY-45
+     */
+    async createRefundForDispute(disputeId: string, financeStaffId: string, createRefundDto: CreateRefundDto) {
+        const dispute = await this.disputesModel.findOne({ disputeId });
+        if (!dispute) {
+            throw new NotFoundException('Dispute not found');
+        }
+
+        if (dispute.status !== DisputeStatus.APPROVED) {
+            throw new BadRequestException(`Cannot create refund for dispute with status: ${dispute.status}. Dispute must be approved.`);
+        }
+
+        // Check if refund already exists for this dispute
+        const existingRefund = await this.refundsModel.findOne({ disputeId: dispute._id });
+        if (existingRefund) {
+            throw new BadRequestException('Refund already exists for this dispute');
+        }
+
+        // Get the payslip to determine refund amount (if needed)
+        const payslip = await this.payslipModel.findById(dispute.payslipId);
+        if (!payslip) {
+            throw new NotFoundException('Payslip not found for this dispute');
+        }
+
+        // Calculate refund amount (the difference in the disputed amount)
+        const refundAmount = createRefundDto.amount;
+
+        // Create refund record
+        const refund = new this.refundsModel({
+            disputeId: dispute._id,
+            employeeId: dispute.employeeId,
+            financeStaffId: new Types.ObjectId(financeStaffId),
+            refundDetails: {
+                description: createRefundDto.description || `Refund for dispute ${dispute.disputeId}`,
+                amount: refundAmount,
+            },
+            status: RefundStatus.PENDING,
+        });
+
+        const savedRefund = await refund.save();
+
+        // Update dispute with finance staff ID
+        await this.disputesModel.updateOne(
+            { _id: dispute._id },
+            { financeStaffId: new Types.ObjectId(financeStaffId) },
+        );
+
+        return savedRefund.populate([
+            { path: 'employeeId', select: 'employeeNumber firstName lastName' },
+            { path: 'financeStaffId', select: 'employeeNumber firstName lastName' },
+            { path: 'disputeId', select: 'disputeId description status' },
+        ]);
+    }
+
+    /**
+     * Generate refund for approved claim
+     * REQ-PY-46
+     */
+    async createRefundForClaim(claimId: string, financeStaffId: string, createRefundDto: CreateRefundDto) {
+        const claim = await this.claimsModel.findOne({ claimId });
+        if (!claim) {
+            throw new NotFoundException('Claim not found');
+        }
+
+        if (claim.status !== ClaimStatus.APPROVED) {
+            throw new BadRequestException(`Cannot create refund for claim with status: ${claim.status}. Claim must be approved.`);
+        }
+
+        // Check if refund already exists for this claim
+        const existingRefund = await this.refundsModel.findOne({ claimId: claim._id });
+        if (existingRefund) {
+            throw new BadRequestException('Refund already exists for this claim');
+        }
+
+        // Use approved amount if available, otherwise use original claim amount
+        const refundAmount = claim.approvedAmount || claim.amount;
+
+        // Create refund record
+        const refund = new this.refundsModel({
+            claimId: claim._id,
+            employeeId: claim.employeeId,
+            financeStaffId: new Types.ObjectId(financeStaffId),
+            refundDetails: {
+                description: createRefundDto.description || `Refund for claim ${claim.claimId}`,
+                amount: refundAmount,
+            },
+            status: RefundStatus.PENDING,
+        });
+
+        const savedRefund = await refund.save();
+
+        // Update claim with finance staff ID
+        await this.claimsModel.updateOne(
+            { _id: claim._id },
+            { financeStaffId: new Types.ObjectId(financeStaffId) },
+        );
+
+        return savedRefund.populate([
+            { path: 'employeeId', select: 'employeeNumber firstName lastName' },
+            { path: 'financeStaffId', select: 'employeeNumber firstName lastName' },
+            { path: 'claimId', select: 'claimId description claimType amount approvedAmount status' },
+        ]);
+    }
+
+    // ==================== REPORT GENERATION SERVICES ====================
+
+    /**
+     * Generate tax report
+     * REQ-PY-25
+     */
+    async generateTaxReport(filters: TaxReportDto) {
+        const { fromDate, toDate, year, departmentId } = filters;
+
+        // Build query
+        const query: any = {};
+        const dateQuery: any = {};
+
+        if (year) {
+            const startDate = new Date(year, 0, 1);
+            const endDate = new Date(year, 11, 31, 23, 59, 59);
+            dateQuery.$gte = startDate;
+            dateQuery.$lte = endDate;
+        } else if (fromDate || toDate) {
+            if (fromDate) dateQuery.$gte = new Date(fromDate);
+            if (toDate) dateQuery.$lte = new Date(toDate);
+        }
+
+        if (Object.keys(dateQuery).length > 0) {
+            query.createdAt = dateQuery;
+        }
+
+        // If department filter, get employee IDs first
+        if (departmentId) {
+            const employees = await this.employeeProfileModel
+                .find({ primaryDepartmentId: new Types.ObjectId(departmentId) })
+                .select('_id')
+                .lean();
+            const employeeIds = employees.map(emp => emp._id);
+            query.employeeId = { $in: employeeIds };
+        }
+
+        // Get payslips matching the query
+        const payslips = await this.payslipModel
+            .find(query)
+            .populate('employeeId', 'employeeNumber firstName lastName primaryDepartmentId')
+            .populate('payrollRunId', 'runId payrollPeriod status')
+            .lean();
+
+        // Aggregate tax data
+        let totalTaxAmount = 0;
+        const taxBreakdown: Record<string, { amount: number; count: number }> = {};
+        const employeeTaxData: any[] = [];
+
+        payslips.forEach((payslip: any) => {
+            if (payslip.deductionsDetails?.taxes) {
+                payslip.deductionsDetails.taxes.forEach((tax: any) => {
+                    // Calculate tax amount based on rate and gross salary
+                    const taxAmount = (payslip.totalGrossSalary * (tax.rate || 0)) / 100;
+                    totalTaxAmount += taxAmount;
+
+                    // Aggregate by tax type
+                    const taxName = tax.name || 'Unknown Tax';
+                    if (!taxBreakdown[taxName]) {
+                        taxBreakdown[taxName] = { amount: 0, count: 0 };
+                    }
+                    taxBreakdown[taxName].amount += taxAmount;
+                    taxBreakdown[taxName].count += 1;
+
+                    // Store per-employee data
+                    employeeTaxData.push({
+                        employee: payslip.employeeId,
+                        payrollRun: payslip.payrollRunId,
+                        taxName,
+                        taxRate: tax.rate,
+                        grossSalary: payslip.totalGrossSalary,
+                        taxAmount,
+                        period: payslip.payrollRunId?.payrollPeriod || payslip.createdAt,
+                    });
+                });
+            }
+        });
+
+        return {
+            reportType: 'tax',
+            period: year ? `${year}` : fromDate && toDate ? `${fromDate} to ${toDate}` : 'All time',
+            departmentId: departmentId || null,
+            summary: {
+                totalTaxAmount,
+                totalEmployees: new Set(employeeTaxData.map((d: any) => d.employee?._id?.toString())).size,
+                totalPayrollRuns: new Set(employeeTaxData.map((d: any) => d.payrollRun?._id?.toString())).size,
+            },
+            taxBreakdown: Object.entries(taxBreakdown).map(([name, data]) => ({
+                taxName: name,
+                totalAmount: data.amount,
+                transactionCount: data.count,
+            })),
+            detailedData: employeeTaxData,
+            generatedAt: new Date(),
+        };
+    }
+
+    /**
+     * Generate insurance report
+     * REQ-PY-25
+     */
+    async generateInsuranceReport(filters: PayrollReportDto) {
+        const { fromDate, toDate, departmentId } = filters;
+
+        // Build query
+        const query: any = {};
+        const dateQuery: any = {};
+
+        if (fromDate || toDate) {
+            if (fromDate) dateQuery.$gte = new Date(fromDate);
+            if (toDate) dateQuery.$lte = new Date(toDate);
+        }
+
+        if (Object.keys(dateQuery).length > 0) {
+            query.createdAt = dateQuery;
+        }
+
+        // If department filter, get employee IDs first
+        if (departmentId) {
+            const employees = await this.employeeProfileModel
+                .find({ primaryDepartmentId: new Types.ObjectId(departmentId) })
+                .select('_id')
+                .lean();
+            const employeeIds = employees.map(emp => emp._id);
+            query.employeeId = { $in: employeeIds };
+        }
+
+        // Get payslips
+        const payslips = await this.payslipModel
+            .find(query)
+            .populate('employeeId', 'employeeNumber firstName lastName primaryDepartmentId')
+            .populate('payrollRunId', 'runId payrollPeriod status')
+            .lean();
+
+        // Aggregate insurance data
+        let totalEmployeeContributions = 0;
+        let totalEmployerContributions = 0;
+        const insuranceBreakdown: Record<string, { employeeAmount: number; employerAmount: number; count: number }> = {};
+        const employeeInsuranceData: any[] = [];
+
+        payslips.forEach((payslip: any) => {
+            if (payslip.deductionsDetails?.insurances) {
+                payslip.deductionsDetails.insurances.forEach((insurance: any) => {
+                    // Calculate contributions based on rates and gross salary
+                    const employeeAmount = insurance.amount || 0;
+                    const employerAmount = insurance.employerRate
+                        ? (payslip.totalGrossSalary * (insurance.employerRate || 0)) / 100
+                        : 0;
+
+                    totalEmployeeContributions += employeeAmount;
+                    totalEmployerContributions += employerAmount;
+
+                    // Aggregate by insurance type
+                    const insuranceName = insurance.name || 'Unknown Insurance';
+                    if (!insuranceBreakdown[insuranceName]) {
+                        insuranceBreakdown[insuranceName] = { employeeAmount: 0, employerAmount: 0, count: 0 };
+                    }
+                    insuranceBreakdown[insuranceName].employeeAmount += employeeAmount;
+                    insuranceBreakdown[insuranceName].employerAmount += employerAmount;
+                    insuranceBreakdown[insuranceName].count += 1;
+
+                    // Store per-employee data
+                    employeeInsuranceData.push({
+                        employee: payslip.employeeId,
+                        payrollRun: payslip.payrollRunId,
+                        insuranceName,
+                        employeeRate: insurance.employeeRate,
+                        employerRate: insurance.employerRate,
+                        grossSalary: payslip.totalGrossSalary,
+                        employeeContribution: employeeAmount,
+                        employerContribution: employerAmount,
+                        period: payslip.payrollRunId?.payrollPeriod || payslip.createdAt,
+                    });
+                });
+            }
+        });
+
+        return {
+            reportType: 'insurance',
+            period: fromDate && toDate ? `${fromDate} to ${toDate}` : 'All time',
+            departmentId: departmentId || null,
+            summary: {
+                totalEmployeeContributions,
+                totalEmployerContributions,
+                totalContributions: totalEmployeeContributions + totalEmployerContributions,
+                totalEmployees: new Set(employeeInsuranceData.map((d: any) => d.employee?._id?.toString())).size,
+                totalPayrollRuns: new Set(employeeInsuranceData.map((d: any) => d.payrollRun?._id?.toString())).size,
+            },
+            insuranceBreakdown: Object.entries(insuranceBreakdown).map(([name, data]) => ({
+                insuranceName: name,
+                totalEmployeeContributions: data.employeeAmount,
+                totalEmployerContributions: data.employerAmount,
+                transactionCount: data.count,
+            })),
+            detailedData: employeeInsuranceData,
+            generatedAt: new Date(),
+        };
+    }
+
+    /**
+     * Generate benefits report
+     * REQ-PY-25
+     */
+    async generateBenefitsReport(filters: PayrollReportDto) {
+        const { fromDate, toDate, departmentId } = filters;
+
+        // Build query
+        const query: any = {};
+        const dateQuery: any = {};
+
+        if (fromDate || toDate) {
+            if (fromDate) dateQuery.$gte = new Date(fromDate);
+            if (toDate) dateQuery.$lte = new Date(toDate);
+        }
+
+        if (Object.keys(dateQuery).length > 0) {
+            query.createdAt = dateQuery;
+        }
+
+        // If department filter, get employee IDs first
+        if (departmentId) {
+            const employees = await this.employeeProfileModel
+                .find({ primaryDepartmentId: new Types.ObjectId(departmentId) })
+                .select('_id')
+                .lean();
+            const employeeIds = employees.map(emp => emp._id);
+            query.employeeId = { $in: employeeIds };
+        }
+
+        // Get payslips
+        const payslips = await this.payslipModel
+            .find(query)
+            .populate('employeeId', 'employeeNumber firstName lastName primaryDepartmentId')
+            .populate('payrollRunId', 'runId payrollPeriod status')
+            .lean();
+
+        // Aggregate benefits data
+        let totalBenefitsAmount = 0;
+        const benefitsBreakdown: Record<string, { amount: number; count: number }> = {};
+        const employeeBenefitsData: any[] = [];
+
+        payslips.forEach((payslip: any) => {
+            // Benefits are in earningsDetails
+            if (payslip.earningsDetails?.benefits) {
+                payslip.earningsDetails.benefits.forEach((benefit: any) => {
+                    const benefitAmount = benefit.amount || 0;
+                    totalBenefitsAmount += benefitAmount;
+
+                    // Aggregate by benefit type
+                    const benefitName = benefit.name || 'Unknown Benefit';
+                    if (!benefitsBreakdown[benefitName]) {
+                        benefitsBreakdown[benefitName] = { amount: 0, count: 0 };
+                    }
+                    benefitsBreakdown[benefitName].amount += benefitAmount;
+                    benefitsBreakdown[benefitName].count += 1;
+
+                    // Store per-employee data
+                    employeeBenefitsData.push({
+                        employee: payslip.employeeId,
+                        payrollRun: payslip.payrollRunId,
+                        benefitName,
+                        benefitAmount,
+                        period: payslip.payrollRunId?.payrollPeriod || payslip.createdAt,
+                    });
+                });
+            }
+        });
+
+        return {
+            reportType: 'benefits',
+            period: fromDate && toDate ? `${fromDate} to ${toDate}` : 'All time',
+            departmentId: departmentId || null,
+            summary: {
+                totalBenefitsAmount,
+                totalEmployees: new Set(employeeBenefitsData.map((d: any) => d.employee?._id?.toString())).size,
+                totalPayrollRuns: new Set(employeeBenefitsData.map((d: any) => d.payrollRun?._id?.toString())).size,
+            },
+            benefitsBreakdown: Object.entries(benefitsBreakdown).map(([name, data]) => ({
+                benefitName: name,
+                totalAmount: data.amount,
+                transactionCount: data.count,
+            })),
+            detailedData: employeeBenefitsData,
+            generatedAt: new Date(),
+        };
+    }
+
+    /**
+     * Generate month-end summary
+     * REQ-PY-29
+     */
+    async generateMonthEndSummary(month: number, year: number) {
+        if (month < 1 || month > 12) {
+            throw new BadRequestException('Invalid month. Must be between 1 and 12');
+        }
+
+        const startDate = new Date(year, month - 1, 1);
+        const endDate = new Date(year, month, 0, 23, 59, 59); // Last day of the month
+
+        // Get all payroll runs for the month
+        const payrollRuns = await this.payrollRunsModel
+            .find({
+                payrollPeriod: {
+                    $gte: startDate,
+                    $lte: endDate,
+                },
+            })
+            .populate('payrollSpecialistId', 'employeeNumber firstName lastName')
+            .populate('payrollManagerId', 'employeeNumber firstName lastName')
+            .lean();
+
+        // Get all payslips for the month
+        const payslips = await this.payslipModel
+            .find({
+                createdAt: {
+                    $gte: startDate,
+                    $lte: endDate,
+                },
+            })
+            .populate('employeeId', 'employeeNumber firstName lastName primaryDepartmentId')
+            .populate('payrollRunId', 'runId payrollPeriod status')
+            .lean();
+
+        // Calculate totals
+        let totalGrossSalary = 0;
+        let totalDeductions = 0;
+        let totalNetPay = 0;
+        const departmentTotals: Record<string, { gross: number; deductions: number; net: number; employees: Set<string> }> = {};
+
+        payslips.forEach((payslip: any) => {
+            totalGrossSalary += payslip.totalGrossSalary || 0;
+            totalDeductions += payslip.totaDeductions || 0;
+            totalNetPay += payslip.netPay || 0;
+
+            // Group by department
+            const deptId = payslip.employeeId?.primaryDepartmentId?.toString() || 'Unknown';
+            if (!departmentTotals[deptId]) {
+                departmentTotals[deptId] = { gross: 0, deductions: 0, net: 0, employees: new Set() };
+            }
+            departmentTotals[deptId].gross += payslip.totalGrossSalary || 0;
+            departmentTotals[deptId].deductions += payslip.totaDeductions || 0;
+            departmentTotals[deptId].net += payslip.netPay || 0;
+            departmentTotals[deptId].employees.add(payslip.employeeId?._id?.toString() || '');
+        });
+
+        return {
+            reportType: 'month-end-summary',
+            period: { month, year },
+            summary: {
+                totalPayrollRuns: payrollRuns.length,
+                totalEmployees: new Set(payslips.map((p: any) => p.employeeId?._id?.toString())).size,
+                totalGrossSalary,
+                totalDeductions,
+                totalNetPay,
+            },
+            payrollRuns: payrollRuns.map((run: any) => ({
+                runId: run.runId,
+                payrollPeriod: run.payrollPeriod,
+                status: run.status,
+                employees: run.employees,
+                totalNetPay: run.totalnetpay,
+                specialist: run.payrollSpecialistId,
+                manager: run.payrollManagerId,
+            })),
+            departmentBreakdown: Object.entries(departmentTotals).map(([deptId, data]) => ({
+                departmentId: deptId,
+                employeeCount: data.employees.size,
+                totalGrossSalary: data.gross,
+                totalDeductions: data.deductions,
+                totalNetPay: data.net,
+            })),
+            generatedAt: new Date(),
+        };
+    }
+
+    /**
+     * Generate year-end summary
+     * REQ-PY-29
+     */
+    async generateYearEndSummary(year: number) {
+        const startDate = new Date(year, 0, 1);
+        const endDate = new Date(year, 11, 31, 23, 59, 59);
+
+        // Get all payroll runs for the year
+        const payrollRuns = await this.payrollRunsModel
+            .find({
+                payrollPeriod: {
+                    $gte: startDate,
+                    $lte: endDate,
+                },
+            })
+            .lean();
+
+        // Get all payslips for the year
+        const payslips = await this.payslipModel
+            .find({
+                createdAt: {
+                    $gte: startDate,
+                    $lte: endDate,
+                },
+            })
+            .populate('employeeId', 'employeeNumber firstName lastName primaryDepartmentId')
+            .lean();
+
+        // Calculate monthly breakdown
+        const monthlyBreakdown: Record<number, { runs: number; employees: Set<string>; gross: number; deductions: number; net: number }> = {};
+        for (let m = 1; m <= 12; m++) {
+            monthlyBreakdown[m] = { runs: 0, employees: new Set(), gross: 0, deductions: 0, net: 0 };
+        }
+
+        let totalGrossSalary = 0;
+        let totalDeductions = 0;
+        let totalNetPay = 0;
+
+        payslips.forEach((payslip: any) => {
+            const month = new Date(payslip.createdAt).getMonth() + 1;
+            totalGrossSalary += payslip.totalGrossSalary || 0;
+            totalDeductions += payslip.totaDeductions || 0;
+            totalNetPay += payslip.netPay || 0;
+
+            monthlyBreakdown[month].gross += payslip.totalGrossSalary || 0;
+            monthlyBreakdown[month].deductions += payslip.totaDeductions || 0;
+            monthlyBreakdown[month].net += payslip.netPay || 0;
+            monthlyBreakdown[month].employees.add(payslip.employeeId?._id?.toString() || '');
+        });
+
+        payrollRuns.forEach((run: any) => {
+            const month = new Date(run.payrollPeriod).getMonth() + 1;
+            monthlyBreakdown[month].runs += 1;
+        });
+
+        return {
+            reportType: 'year-end-summary',
+            year,
+            summary: {
+                totalPayrollRuns: payrollRuns.length,
+                totalEmployees: new Set(payslips.map((p: any) => p.employeeId?._id?.toString())).size,
+                totalGrossSalary,
+                totalDeductions,
+                totalNetPay,
+            },
+            monthlyBreakdown: Object.entries(monthlyBreakdown).map(([month, data]) => ({
+                month: parseInt(month, 10),
+                payrollRuns: data.runs,
+                employeeCount: data.employees.size,
+                totalGrossSalary: data.gross,
+                totalDeductions: data.deductions,
+                totalNetPay: data.net,
+            })),
+            generatedAt: new Date(),
+        };
+    }
+
+    /**
+     * Generate department payroll report
+     * REQ-PY-38
+     */
+    async generateDepartmentPayrollReport(departmentId: string, filters: DepartmentReportDto) {
+        // Get all employees in the department
+        const employees = await this.employeeProfileModel
+            .find({ primaryDepartmentId: new Types.ObjectId(departmentId) })
+            .select('_id employeeNumber firstName lastName')
+            .lean();
+
+        if (employees.length === 0) {
+            throw new NotFoundException('No employees found in this department');
+        }
+
+        const employeeIds = employees.map(emp => emp._id);
+
+        // Build query
+        const query: any = { employeeId: { $in: employeeIds } };
+        const dateQuery: any = {};
+
+        if (filters.fromDate || filters.toDate) {
+            if (filters.fromDate) dateQuery.$gte = new Date(filters.fromDate);
+            if (filters.toDate) dateQuery.$lte = new Date(filters.toDate);
+            query.createdAt = dateQuery;
+        }
+
+        if (filters.payrollRunId) {
+            query.payrollRunId = new Types.ObjectId(filters.payrollRunId);
+        }
+
+        // Get payslips for department employees
+        const payslips = await this.payslipModel
+            .find(query)
+            .populate('employeeId', 'employeeNumber firstName lastName primaryDepartmentId')
+            .populate('payrollRunId', 'runId payrollPeriod status')
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Calculate department totals
+        let totalGrossSalary = 0;
+        let totalDeductions = 0;
+        let totalNetPay = 0;
+        const employeeBreakdown: Record<string, { gross: number; deductions: number; net: number; payslipCount: number }> = {};
+
+        payslips.forEach((payslip: any) => {
+            const empId = payslip.employeeId?._id?.toString() || '';
+            totalGrossSalary += payslip.totalGrossSalary || 0;
+            totalDeductions += payslip.totaDeductions || 0;
+            totalNetPay += payslip.netPay || 0;
+
+            if (!employeeBreakdown[empId]) {
+                employeeBreakdown[empId] = { gross: 0, deductions: 0, net: 0, payslipCount: 0 };
+            }
+            employeeBreakdown[empId].gross += payslip.totalGrossSalary || 0;
+            employeeBreakdown[empId].deductions += payslip.totaDeductions || 0;
+            employeeBreakdown[empId].net += payslip.netPay || 0;
+            employeeBreakdown[empId].payslipCount += 1;
+        });
+
+        return {
+            reportType: 'department-payroll',
+            departmentId,
+            period: filters.fromDate && filters.toDate ? `${filters.fromDate} to ${filters.toDate}` : 'All time',
+            summary: {
+                totalEmployees: employees.length,
+                employeesWithPayslips: Object.keys(employeeBreakdown).length,
+                totalPayslips: payslips.length,
+                totalGrossSalary,
+                totalDeductions,
+                totalNetPay,
+            },
+            employeeBreakdown: Object.entries(employeeBreakdown).map(([empId, data]) => {
+                const employee = employees.find(emp => emp._id.toString() === empId);
+                return {
+                    employee: employee ? {
+                        employeeNumber: employee.employeeNumber,
+                        firstName: employee.firstName,
+                        lastName: employee.lastName,
+                    } : null,
+                    payslipCount: data.payslipCount,
+                    totalGrossSalary: data.gross,
+                    totalDeductions: data.deductions,
+                    totalNetPay: data.net,
+                };
+            }),
+            detailedPayslips: payslips.map((payslip: any) => ({
+                payslipId: payslip._id,
+                employee: payslip.employeeId,
+                payrollRun: payslip.payrollRunId,
+                grossSalary: payslip.totalGrossSalary,
+                deductions: payslip.totaDeductions,
+                netPay: payslip.netPay,
+                paymentStatus: payslip.paymentStatus,
+                period: payslip.payrollRunId?.payrollPeriod || payslip.createdAt,
+            })),
+            generatedAt: new Date(),
         };
     }
 }
