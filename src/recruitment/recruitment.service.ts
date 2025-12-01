@@ -222,20 +222,35 @@ export class RecruitmentService {
 
   // APPLICATIONS
   async createApplication(dto: CreateApplicationDto) {
-    const requisition = await this.findOneJobRequisition(dto.requisitionId);
+  const requisition = await this.findOneJobRequisition(dto.requisitionId);
 
-    if (requisition.publishStatus === 'closed') {
-      throw new BadRequestException('Cannot apply to closed requisition');
-    }
+  if (requisition.publishStatus === 'closed') {
+    throw new BadRequestException('Cannot apply to closed requisition');
+  }
 
-    return new this.applicationModel({
+  // 🔒 Prevent duplicate applications for the same candidate + requisition
+  const existingApplication = await this.applicationModel
+    .findOne({
       candidateId: dto.candidateId,
       requisitionId: dto.requisitionId,
-      assignedHr: dto.assignedHr,
-      currentStage: ApplicationStage.SCREENING,
-      status: ApplicationStatus.SUBMITTED,
-    }).save();
+    })
+    .exec();
+
+  if (existingApplication) {
+    throw new BadRequestException(
+      'Candidate already has an application for this requisition',
+    );
   }
+
+  return new this.applicationModel({
+    candidateId: dto.candidateId,
+    requisitionId: dto.requisitionId,
+    assignedHr: dto.assignedHr,
+    currentStage: ApplicationStage.SCREENING,
+    status: ApplicationStatus.SUBMITTED,
+  }).save();
+}
+
 
   async findAllApplications() {
     return this.applicationModel.find().populate('requisitionId').exec();
@@ -387,19 +402,43 @@ export class RecruitmentService {
       .exec();
   }
 
-  // INTERVIEWS
+    // INTERVIEWS
   async scheduleInterview(dto: CreateInterviewDto) {
     const app = await this.findOneApplication(dto.applicationId);
 
+    // Cannot schedule interview for rejected application
     if (app.status === ApplicationStatus.REJECTED) {
       throw new BadRequestException(
         'Cannot schedule interview for a rejected application',
       );
     }
 
+    // Cannot schedule interview after offer stage
     if (app.currentStage === ApplicationStage.OFFER) {
       throw new BadRequestException(
         'Cannot schedule interview after offer stage',
+      );
+    }
+
+    // Prevent interview before previous stage:
+    // interviews are only allowed for the CURRENT stage of the application
+    if (dto.stage !== app.currentStage) {
+      throw new BadRequestException(
+        'Cannot schedule interview for a stage different from the current application stage',
+      );
+    }
+
+    // Validate interview count per stage (e.g. max 3 per stage)
+    const interviewsInStage = await this.interviewModel
+      .countDocuments({
+        applicationId: app._id,
+        stage: dto.stage,
+      })
+      .exec();
+
+    if (interviewsInStage >= 3) {
+      throw new BadRequestException(
+        'Maximum number of interviews reached for this stage',
       );
     }
 
@@ -465,41 +504,51 @@ export class RecruitmentService {
       .exec();
   }
 
+
   // ASSESSMENTS
   async createAssessmentResult(dto: CreateAssessmentResultDto) {
-    const interview = await this.interviewModel
-      .findById(dto.interviewId)
-      .exec();
-    if (!interview) throw new NotFoundException('Interview not found');
+  const interview = await this.interviewModel
+    .findById(dto.interviewId)
+    .exec();
+  if (!interview) throw new NotFoundException('Interview not found');
 
-    const app = await this.findOneApplication(
-      interview.applicationId.toString(),
+  const app = await this.findOneApplication(
+    interview.applicationId.toString(),
+  );
+
+  if (app.status === ApplicationStatus.REJECTED) {
+    throw new BadRequestException(
+      'Cannot add assessment for a rejected application',
     );
-
-    if (app.status === ApplicationStatus.REJECTED) {
-      throw new BadRequestException(
-        'Cannot add assessment for a rejected application',
-      );
-    }
-
-    if (app.currentStage === ApplicationStage.OFFER) {
-      throw new BadRequestException(
-        'Cannot add assessment after offer stage',
-      );
-    }
-
-    const assessment = await this.assessmentResultModel.create({
-      interviewId: interview._id,
-      interviewerId: new Types.ObjectId(dto.interviewerId),
-      score: dto.score,
-      comments: dto.comments || '',
-    });
-
-    interview.feedbackId = assessment._id;
-    await interview.save();
-
-    return assessment;
   }
+
+  if (app.currentStage === ApplicationStage.OFFER) {
+    throw new BadRequestException(
+      'Cannot add assessment after offer stage',
+    );
+  }
+
+  // Business rule: assessment only after interview is completed
+  if (interview.status !== InterviewStatus.COMPLETED) {
+    throw new BadRequestException(
+      'Cannot add assessment before interview is completed',
+    );
+  }
+
+  const assessment = await this.assessmentResultModel.create({
+    interviewId: interview._id,
+    interviewerId: new Types.ObjectId(dto.interviewerId),
+    score: dto.score,
+    comments: dto.comments || '',
+  });
+
+  interview.feedbackId = assessment._id;
+  await interview.save();
+
+  return assessment;
+}
+
+
 
   async updateAssessmentResult(
     id: string,
@@ -584,30 +633,59 @@ export class RecruitmentService {
 
   // OFFERS
   async createOffer(dto: CreateOfferDto) {
-    const app = await this.findOneApplication(dto.applicationId);
+  const app = await this.findOneApplication(dto.applicationId);
 
-    if (app.currentStage !== ApplicationStage.OFFER) {
-      throw new BadRequestException(
-        'Cannot generate offer unless application is in OFFER stage',
-      );
-    }
-
-    const offer = await this.offerModel.create({
-      applicationId: new Types.ObjectId(dto.applicationId),
-      candidateId: new Types.ObjectId(dto.candidateId),
-    });
-
-    await this.logHistory(
-      app._id,
-      app.currentStage,
-      app.currentStage,
-      app.status,
-      app.status,
-      dto.changedBy,
+  if (app.currentStage !== ApplicationStage.OFFER) {
+    throw new BadRequestException(
+      'Cannot generate offer unless application is in OFFER stage',
     );
-
-    return offer;
   }
+
+  //Ensure there are no pending (scheduled) interviews
+  const pendingInterview = await this.interviewModel
+    .findOne({
+      applicationId: app._id,
+      status: InterviewStatus.SCHEDULED,
+    })
+    .exec();
+
+  if (pendingInterview) {
+    throw new BadRequestException(
+      'Cannot create offer while there are pending interviews',
+    );
+  }
+
+  //Optionally: require at least one completed interview
+  const completedInterview = await this.interviewModel
+    .findOne({
+      applicationId: app._id,
+      status: InterviewStatus.COMPLETED,
+    })
+    .exec();
+
+  if (!completedInterview) {
+    throw new BadRequestException(
+      'Cannot create offer before at least one completed interview',
+    );
+  }
+
+  const offer = await this.offerModel.create({
+    applicationId: new Types.ObjectId(dto.applicationId),
+    candidateId: new Types.ObjectId(dto.candidateId),
+  });
+
+  await this.logHistory(
+    app._id,
+    app.currentStage,
+    app.currentStage,
+    app.status,
+    app.status,
+    dto.changedBy,
+  );
+
+  return offer;
+}
+
 
   async updateOfferStatus(id: string, dto: UpdateOfferStatusDto) {
     const offer = await this.offerModel.findById(id).exec();

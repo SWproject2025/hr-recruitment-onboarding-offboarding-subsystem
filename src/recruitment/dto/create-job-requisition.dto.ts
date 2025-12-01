@@ -1,10 +1,39 @@
+import {
+  IsString,
+  IsMongoId,
+  IsOptional,
+  IsNumber,
+  Min,
+  Max,
+  IsDateString,
+} from 'class-validator';
+
 export class CreateJobRequisitionDto {
-  requisitionId: string;       // for example "REQ-2025-001"
-  templateId?: string;         // ObjectId as string
+  @IsString()
+  requisitionId: string; // “REQ-2025-001” string
+
+  @IsMongoId()
+  templateId: string;
+
+  @IsNumber()
+  @Min(1)
   openings: number;
-  location?: string;
-  hiringManagerId: string;     // ObjectId as string
-  publishStatus?: string;      // draft, published, closed
+
+  @IsString()
+  location: string;
+
+  @IsMongoId()
+  hiringManagerId: string;
+
+  @IsOptional()
+  @IsString()
+  publishStatus?: string;
+
+  @IsOptional()
+  @IsDateString()
   postingDate?: Date;
+
+  @IsOptional()
+  @IsDateString()
   expiryDate?: Date;
 }
