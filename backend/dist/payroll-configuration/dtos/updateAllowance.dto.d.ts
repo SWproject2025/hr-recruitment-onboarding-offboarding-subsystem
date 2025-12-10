@@ -1,0 +1,5 @@
+import { CreateAllowanceDto } from "./createAllowance.dto";
+declare const UpdateAllowanceDto_base: import("@nestjs/mapped-types").MappedType<Partial<CreateAllowanceDto>>;
+export declare class UpdateAllowanceDto extends UpdateAllowanceDto_base {
+}
+export {};
