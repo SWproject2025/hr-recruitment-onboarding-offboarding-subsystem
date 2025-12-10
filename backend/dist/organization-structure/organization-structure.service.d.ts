@@ -1,0 +1,33 @@
+import { Model } from 'mongoose';
+import { Department, DepartmentDocument } from './models/department.schema';
+import { Position, PositionDocument } from './models/position.schema';
+import { JobRequisition, JobRequisitionDocument } from './models/job-requisition.schema';
+import { CreateDepartmentDto } from './dto/create-department.dto';
+import { UpdateDepartmentDto } from './dto/update-department.dto';
+import { CreatePositionDto } from './dto/create-position.dto';
+import { UpdatePositionDto } from './dto/update-position.dto';
+import { CreateJobRequisitionDto } from './dto/create-job-requisition.dto';
+import { UpdateJobRequisitionDto } from './dto/update-job-requisition.dto';
+export declare class OrganizationStructureService {
+    private readonly departmentModel;
+    private readonly positionModel;
+    private readonly jobReqModel;
+    constructor(departmentModel: Model<DepartmentDocument>, positionModel: Model<PositionDocument>, jobReqModel: Model<JobRequisitionDocument>);
+    createDepartment(dto: CreateDepartmentDto): Promise<Department>;
+    updateDepartment(id: string, dto: UpdateDepartmentDto): Promise<Department>;
+    deactivateDepartment(id: string): Promise<Department>;
+    listDepartments(): Promise<Department[]>;
+    getDepartmentById(id: string): Promise<Department>;
+    private ensureActiveDepartment;
+    createPosition(dto: CreatePositionDto): Promise<Position>;
+    updatePosition(id: string, dto: UpdatePositionDto): Promise<Position>;
+    deactivatePosition(id: string): Promise<Position>;
+    listPositions(): Promise<Position[]>;
+    getPositionById(id: string): Promise<Position>;
+    private ensureActivePosition;
+    createJobRequisition(dto: CreateJobRequisitionDto): Promise<JobRequisition>;
+    updateJobRequisition(id: string, dto: UpdateJobRequisitionDto): Promise<JobRequisition>;
+    closeJobRequisition(id: string): Promise<JobRequisition>;
+    listJobRequisitions(): Promise<JobRequisition[]>;
+    getJobRequisitionById(id: string): Promise<JobRequisition>;
+}
