@@ -1,1 +1,1 @@
-{"version":3,"file":"filter-documents.dto.js","sourceRoot":"","sources":["../../../src/recruitment/dto/filter-documents.dto.ts"],"names":[],"mappings":";;;AAAA,MAAa,kBAAkB;IAC7B,aAAa,CAAU;IACvB,IAAI,CAAU;CACf;AAHD,gDAGC"}
+{"version":3,"file":"filter-documents.dto.js","sourceRoot":"","sources":["../../../src/recruitment/dto/filter-documents.dto.ts"],"names":[],"mappings":";;;AAAA,MAAa,kBAAkB;IAC7B,OAAO,CAAU;IACjB,aAAa,CAAU;IACvB,IAAI,CAAU;CACf;AAJD,gDAIC"}

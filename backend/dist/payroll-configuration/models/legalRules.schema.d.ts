@@ -1,4 +1,4 @@
-import { HydratedDocument } from "mongoose";
+import { HydratedDocument } from 'mongoose';
 export type LegalRulesDocument = HydratedDocument<LegalRules>;
 export declare class LegalRules {
     name: string;

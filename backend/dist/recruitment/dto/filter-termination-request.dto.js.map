@@ -1,1 +1,1 @@
-{"version":3,"file":"filter-termination-request.dto.js","sourceRoot":"","sources":["../../../src/recruitment/dto/filter-termination-request.dto.ts"],"names":[],"mappings":";;;AAAA,MAAa,2BAA2B;IACtC,UAAU,CAAU;IACpB,MAAM,CAAU;CACjB;AAHD,kEAGC"}
+{"version":3,"file":"filter-termination-request.dto.js","sourceRoot":"","sources":["../../../src/recruitment/dto/filter-termination-request.dto.ts"],"names":[],"mappings":";;;AAEA,MAAa,2BAA2B;IACtC,UAAU,CAAU;IACpB,MAAM,CAAU;IAChB,SAAS,CAAyB;CACnC;AAJD,kEAIC"}

@@ -14,28 +14,28 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CalcDraftService = void 0;
 const common_1 = require("@nestjs/common");
-const payrollRuns_schema_1 = require("../schemas/payrollRuns.schema");
-const employeePayrollDetails_schema_1 = require("../schemas/employeePayrollDetails.schema");
-const employeePenalties_schema_1 = require("../schemas/employeePenalties.schema");
-const paySlip_schema_1 = require("../schemas/paySlip.schema");
-const employeeSigningBonus_schema_1 = require("../schemas/employeeSigningBonus.schema");
-const EmployeeTerminationResignation_schema_1 = require("../schemas/EmployeeTerminationResignation.schema");
+const payrollRuns_schema_1 = require("../models/payrollRuns.schema");
+const employeePayrollDetails_schema_1 = require("../models/employeePayrollDetails.schema");
+const employeePenalties_schema_1 = require("../models/employeePenalties.schema");
+const payslip_schema_1 = require("../models/payslip.schema");
+const EmployeeSigningBonus_schema_1 = require("../models/EmployeeSigningBonus.schema");
+const EmployeeTerminationResignation_schema_1 = require("../models/EmployeeTerminationResignation.schema");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const payroll_execution_enum_1 = require("../enums/payroll-execution-enum");
 let CalcDraftService = class CalcDraftService {
+    employeeSigningBonusModel;
     payrollRunsModel;
     employeePayrollDetailsModel;
     employeePenaltiesModel;
     paySlipModel;
-    employeeSigningBonusModel;
     employeeTerminationResignationModel;
-    constructor(payrollRunsModel, employeePayrollDetailsModel, employeePenaltiesModel, paySlipModel, employeeSigningBonusModel, employeeTerminationResignationModel) {
+    constructor(employeeSigningBonusModel, payrollRunsModel, employeePayrollDetailsModel, employeePenaltiesModel, paySlipModel, employeeTerminationResignationModel) {
+        this.employeeSigningBonusModel = employeeSigningBonusModel;
         this.payrollRunsModel = payrollRunsModel;
         this.employeePayrollDetailsModel = employeePayrollDetailsModel;
         this.employeePenaltiesModel = employeePenaltiesModel;
         this.paySlipModel = paySlipModel;
-        this.employeeSigningBonusModel = employeeSigningBonusModel;
         this.employeeTerminationResignationModel = employeeTerminationResignationModel;
     }
     async createPayrollRun(createCalcDraftDto) {
@@ -218,7 +218,7 @@ let CalcDraftService = class CalcDraftService {
         const updatedRun = await this.payrollRunsModel.findByIdAndUpdate(payrollRunId, {
             status,
             updatedAt: new Date(),
-            ...(status === payroll_execution_enum_1.PayRollStatus.COMPLETED && { completedAt: new Date() })
+            ...(status === payroll_execution_enum_1.PayRollStatus.APPROVED && { completedAt: new Date() })
         }, { new: true });
         if (!updatedRun) {
             throw new Error(`Payroll run with ID ${payrollRunId} not found`);
@@ -259,7 +259,7 @@ let CalcDraftService = class CalcDraftService {
                 employees: employeeData.length,
                 exceptions: exceptionsCount,
                 totalnetpay: Number(totalNetPay.toFixed(2)),
-                status: exceptionsCount > 0 ? payroll_execution_enum_1.PayRollStatus.REVIEW_NEEDED : payroll_execution_enum_1.PayRollStatus.READY_FOR_APPROVAL,
+                status: exceptionsCount > 0 ? payroll_execution_enum_1.PayRollStatus.UNDER_REVIEW : payroll_execution_enum_1.PayRollStatus.PENDING_FINANCE_APPROVAL,
                 updatedAt: new Date(),
             }, { new: true });
             if (!updatedRun) {
@@ -273,7 +273,7 @@ let CalcDraftService = class CalcDraftService {
         }
         catch (error) {
             await this.payrollRunsModel.findByIdAndUpdate(payrollRunId, {
-                status: payroll_execution_enum_1.PayRollStatus.FAILED,
+                status: payroll_execution_enum_1.PayRollStatus.REJECTED,
                 rejectionReason: error.message,
                 updatedAt: new Date(),
             });
@@ -359,11 +359,11 @@ let CalcDraftService = class CalcDraftService {
 exports.CalcDraftService = CalcDraftService;
 exports.CalcDraftService = CalcDraftService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(payrollRuns_schema_1.payrollRuns.name)),
-    __param(1, (0, mongoose_1.InjectModel)(employeePayrollDetails_schema_1.employeePayrollDetails.name)),
-    __param(2, (0, mongoose_1.InjectModel)(employeePenalties_schema_1.employeePenalties.name)),
-    __param(3, (0, mongoose_1.InjectModel)(paySlip_schema_1.paySlip.name)),
-    __param(4, (0, mongoose_1.InjectModel)(employeeSigningBonus_schema_1.employeeSigningBonus.name)),
+    __param(0, (0, mongoose_1.InjectModel)(EmployeeSigningBonus_schema_1.employeeSigningBonus.name)),
+    __param(1, (0, mongoose_1.InjectModel)(payrollRuns_schema_1.payrollRuns.name)),
+    __param(2, (0, mongoose_1.InjectModel)(employeePayrollDetails_schema_1.employeePayrollDetails.name)),
+    __param(3, (0, mongoose_1.InjectModel)(employeePenalties_schema_1.employeePenalties.name)),
+    __param(4, (0, mongoose_1.InjectModel)(payslip_schema_1.paySlip.name)),
     __param(5, (0, mongoose_1.InjectModel)(EmployeeTerminationResignation_schema_1.EmployeeTerminationResignation.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,

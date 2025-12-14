@@ -5,10 +5,14 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = __importDefault(require("mongoose"));
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const time_management_module_1 = require("./time-management/time-management.module");
@@ -26,7 +30,14 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost:27017/hr-system'),
+            mongoose_1.MongooseModule.forRootAsync({
+                useFactory: () => {
+                    mongoose_2.default.pluralize(null);
+                    return {
+                        uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/hr-main',
+                    };
+                },
+            }),
             time_management_module_1.TimeManagementModule,
             recruitment_module_1.RecruitmentModule,
             leaves_module_1.LeavesModule,

@@ -7,6 +7,11 @@ import { Interview, InterviewDocument } from './models/interview.schema';
 import { AssessmentResult, AssessmentResultDocument } from './models/assessment-result.schema';
 import { Referral, ReferralDocument } from './models/referral.schema';
 import { Offer, OfferDocument } from './models/offer.schema';
+import { Contract, ContractDocument } from './models/contract.schema';
+import { Document, DocumentDocument } from './models/document.schema';
+import { Onboarding, OnboardingDocument } from './models/onboarding.schema';
+import { TerminationRequest, TerminationRequestDocument } from './models/termination-request.schema';
+import { ClearanceChecklist, ClearanceChecklistDocument } from './models/clearance-checklist.schema';
 import { CreateJobTemplateDto } from './dto/create-job-template.dto';
 import { UpdateJobTemplateDto } from './dto/update-job-template.dto';
 import { CreateJobRequisitionDto } from './dto/create-job-requisition.dto';
@@ -27,6 +32,29 @@ import { UpdateReferralDto } from './dto/update-referral.dto';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { UpdateOfferStatusDto } from './dto/update-offer-status.dto';
 import { RespondOfferDto } from './dto/respond-offer.dto';
+import { CreateContractDto } from './dto/create-contract.dto';
+import { UpdateContractDto } from './dto/update-contract.dto';
+import { SignContractDto } from './dto/sign-contract.dto';
+import { FilterContractsDto } from './dto/filter-contracts.dto';
+import { CreateDocumentDto } from './dto/create-document.dto';
+import { UpdateDocumentDto } from './dto/update-document.dto';
+import { FilterDocumentsDto } from './dto/filter-documents.dto';
+import { CreateOnboardingDto } from './dto/create-onboarding.dto';
+import { UpdateOnboardingDto } from './dto/update-onboarding.dto';
+import { CreateOnboardingTaskDto } from './dto/create-onboarding-task.dto';
+import { UpdateOnboardingTaskDto } from './dto/update-onboarding-task.dto';
+import { CompleteOnboardingTaskDto } from './dto/complete-onboarding-task.dto';
+import { FilterOnboardingsDto } from './dto/filter-onboardings.dto';
+import { CreateTerminationRequestDto } from './dto/create-termination-request.dto';
+import { UpdateTerminationRequestDto } from './dto/update-termination-request.dto';
+import { ApproveTerminationDto } from './dto/approve-termination.dto';
+import { RejectTerminationDto } from './dto/reject-termination.dto';
+import { FilterTerminationRequestDto } from './dto/filter-termination-request.dto';
+import { CreateClearanceChecklistDto } from './dto/create-clearance-checklist.dto';
+import { UpdateClearanceChecklistDto } from './dto/update-clearance-checklist.dto';
+import { UpdateClearanceItemDto } from './dto/update-clearance-item.dto';
+import { ApproveClearanceItemDto } from './dto/approve-clearance-item.dto';
+import { DocumentType } from './enums/document-type.enum';
 export declare class RecruitmentService {
     private readonly jobTemplateModel;
     private readonly jobRequisitionModel;
@@ -36,7 +64,12 @@ export declare class RecruitmentService {
     private readonly assessmentResultModel;
     private readonly referralModel;
     private readonly offerModel;
-    constructor(jobTemplateModel: Model<JobTemplateDocument>, jobRequisitionModel: Model<JobRequisitionDocument>, applicationModel: Model<ApplicationDocument>, historyModel: Model<ApplicationStatusHistoryDocument>, interviewModel: Model<InterviewDocument>, assessmentResultModel: Model<AssessmentResultDocument>, referralModel: Model<ReferralDocument>, offerModel: Model<OfferDocument>);
+    private readonly contractModel;
+    private readonly documentModel;
+    private readonly onboardingModel;
+    private readonly terminationModel;
+    private readonly clearanceModel;
+    constructor(jobTemplateModel: Model<JobTemplateDocument>, jobRequisitionModel: Model<JobRequisitionDocument>, applicationModel: Model<ApplicationDocument>, historyModel: Model<ApplicationStatusHistoryDocument>, interviewModel: Model<InterviewDocument>, assessmentResultModel: Model<AssessmentResultDocument>, referralModel: Model<ReferralDocument>, offerModel: Model<OfferDocument>, contractModel: Model<ContractDocument>, documentModel: Model<DocumentDocument>, onboardingModel: Model<OnboardingDocument>, terminationModel: Model<TerminationRequestDocument>, clearanceModel: Model<ClearanceChecklistDocument>);
     private logHistory;
     private validateStageOrder;
     private validateMoveToInterview;
@@ -431,4 +464,417 @@ export declare class RecruitmentService {
     } & Required<{
         _id: Types.ObjectId;
     }>) | null>;
+    createContract(dto: CreateContractDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Contract, {}, {}> & Contract & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Contract, {}, {}> & Contract & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    updateContract(id: string, dto: UpdateContractDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Contract, {}, {}> & Contract & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Contract, {}, {}> & Contract & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    getContract(id: string): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Contract, {}, {}> & Contract & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Contract, {}, {}> & Contract & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    getContractByOffer(offerId: string): Promise<(import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Contract, {}, {}> & Contract & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Contract, {}, {}> & Contract & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>) | null>;
+    signContract(id: string, dto: SignContractDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Contract, {}, {}> & Contract & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Contract, {}, {}> & Contract & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    filterContracts(dto: FilterContractsDto): Promise<(import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Contract, {}, {}> & Contract & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Contract, {}, {}> & Contract & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>)[]>;
+    uploadDocument(dto: CreateDocumentDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    updateDocument(id: string, dto: UpdateDocumentDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    deleteDocument(id: string): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    getDocument(id: string): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    getDocumentsForUser(userId: string): Promise<(import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>)[]>;
+    getDocumentsByType(type: DocumentType): Promise<(import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>)[]>;
+    filterDocuments(dto: FilterDocumentsDto): Promise<(import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Document, {}, {}> & Document & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>)[]>;
+    createOnboarding(dto: CreateOnboardingDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    updateOnboarding(id: string, dto: UpdateOnboardingDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    getOnboarding(id: string): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    getOnboardingForEmployee(employeeId: string): Promise<(import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>) | null>;
+    filterOnboardings(dto: FilterOnboardingsDto): Promise<(import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>)[]>;
+    addOnboardingTask(onboardingId: string, dto: CreateOnboardingTaskDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    updateOnboardingTask(onboardingId: string, taskId: string, dto: UpdateOnboardingTaskDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    completeOnboardingTask(onboardingId: string, taskId: string, dto: CompleteOnboardingTaskDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    completeOnboarding(id: string): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    getOnboardingProgress(id: string): Promise<{
+        totalTasks: number;
+        completedTasks: number;
+        progress: number;
+        onboarding: import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+            _id: Types.ObjectId;
+        } & {
+            __v: number;
+        }, {}, {}> & import("mongoose").Document<unknown, {}, Onboarding, {}, {}> & Onboarding & {
+            _id: Types.ObjectId;
+        } & {
+            __v: number;
+        } & Required<{
+            _id: Types.ObjectId;
+        }>;
+    }>;
+    createTerminationRequest(dto: CreateTerminationRequestDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    updateTerminationRequest(id: string, dto: UpdateTerminationRequestDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    getTerminationRequest(id: string): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    getTerminationForEmployee(employeeId: string): Promise<(import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>) | null>;
+    filterTerminationRequests(dto: FilterTerminationRequestDto): Promise<(import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>)[]>;
+    approveTermination(id: string, dto: ApproveTerminationDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    rejectTermination(id: string, dto: RejectTerminationDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, TerminationRequest, {}, {}> & TerminationRequest & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    createClearanceChecklist(dto: CreateClearanceChecklistDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    updateClearanceChecklist(id: string, dto: UpdateClearanceChecklistDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    getClearanceChecklist(terminationId: string): Promise<(import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>) | null>;
+    updateClearanceItem(checklistId: string, itemId: string, dto: UpdateClearanceItemDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    approveClearanceItem(checklistId: string, itemId: string, dto: ApproveClearanceItemDto): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
+    getClearanceProgress(checklistId: string): Promise<{
+        totalItems: number;
+        approvedItems: number;
+        totalEquipment: number;
+        returnedEquipment: number;
+        cardReturned: boolean;
+        isComplete: boolean;
+        progress: {
+            items: number;
+            equipment: number;
+        };
+        clearance: import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+            _id: Types.ObjectId;
+        } & {
+            __v: number;
+        }, {}, {}> & import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+            _id: Types.ObjectId;
+        } & {
+            __v: number;
+        } & Required<{
+            _id: Types.ObjectId;
+        }>;
+    }>;
 }

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FilterContractsDto = void 0;
 class FilterContractsDto {
+    offerId;
     applicationId;
     contractType;
 }

@@ -1,1 +1,1 @@
-{"version":3,"file":"create-termination-request.dto.js","sourceRoot":"","sources":["../../../src/recruitment/dto/create-termination-request.dto.ts"],"names":[],"mappings":";;;AAAA,MAAa,2BAA2B;IACtC,UAAU,CAAS;IACnB,MAAM,CAAS;IACf,WAAW,CAAS;CACrB;AAJD,kEAIC"}
+{"version":3,"file":"create-termination-request.dto.js","sourceRoot":"","sources":["../../../src/recruitment/dto/create-termination-request.dto.ts"],"names":[],"mappings":";;;AAEA,MAAa,2BAA2B;IACtC,UAAU,CAAS;IACnB,UAAU,CAAS;IACnB,SAAS,CAAwB;IACjC,MAAM,CAAS;IACf,WAAW,CAAU;CACtB;AAND,kEAMC"}

@@ -2,6 +2,7 @@ import mongoose, { HydratedDocument } from 'mongoose';
 import { BankStatus } from '../enums/payroll-execution-enum';
 export type employeePayrollDetailsDocument = HydratedDocument<employeePayrollDetails>;
 export declare class employeePayrollDetails {
+    [x: string]: any;
     employeeId: mongoose.Types.ObjectId;
     baseSalary: number;
     allowances: number;

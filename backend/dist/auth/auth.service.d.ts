@@ -7,7 +7,7 @@ export declare class AuthService {
     constructor(employeeModel: Model<EmployeeProfile>, jwtService: JwtService);
     validateUser(email: string, pass: string): Promise<any>;
     login(user: any): Promise<{
-        access_token: any;
+        access_token: string;
     }>;
     register(registerDto: any): Promise<import("mongoose").Document<unknown, {}, EmployeeProfile, {}, {}> & EmployeeProfile & {
         _id: import("mongoose").Types.ObjectId;

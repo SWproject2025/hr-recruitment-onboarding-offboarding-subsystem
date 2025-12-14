@@ -21,6 +21,7 @@ const referral_schema_1 = require("./models/referral.schema");
 const offer_schema_1 = require("./models/offer.schema");
 const contract_schema_1 = require("./models/contract.schema");
 const document_schema_1 = require("./models/document.schema");
+const onboarding_schema_1 = require("./models/onboarding.schema");
 const termination_request_schema_1 = require("./models/termination-request.schema");
 const clearance_checklist_schema_1 = require("./models/clearance-checklist.schema");
 const employee_profile_module_1 = require("../employee-profile/employee-profile.module");
@@ -41,6 +42,7 @@ exports.RecruitmentModule = RecruitmentModule = __decorate([
                 { name: offer_schema_1.Offer.name, schema: offer_schema_1.OfferSchema },
                 { name: contract_schema_1.Contract.name, schema: contract_schema_1.ContractSchema },
                 { name: document_schema_1.Document.name, schema: document_schema_1.DocumentSchema },
+                { name: onboarding_schema_1.Onboarding.name, schema: onboarding_schema_1.OnboardingSchema },
                 { name: termination_request_schema_1.TerminationRequest.name, schema: termination_request_schema_1.TerminationRequestSchema },
                 { name: clearance_checklist_schema_1.ClearanceChecklist.name, schema: clearance_checklist_schema_1.ClearanceChecklistSchema },
             ]),

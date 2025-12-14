@@ -8,19 +8,79 @@ import { UpdateJobRequisitionDto } from './dto/update-job-requisition.dto';
 export declare class OrganizationStructureController {
     private readonly organizationStructureService;
     constructor(organizationStructureService: OrganizationStructureService);
-    createDepartment(dto: CreateDepartmentDto): Promise<import("./models/department.schema").Department>;
-    listDepartments(): Promise<import("./models/department.schema").Department[]>;
-    getDepartment(id: string): Promise<import("./models/department.schema").Department>;
-    updateDepartment(id: string, dto: UpdateDepartmentDto): Promise<import("./models/department.schema").Department>;
-    deactivateDepartment(id: string): Promise<import("./models/department.schema").Department>;
-    createPosition(dto: CreatePositionDto): Promise<import("./models/position.schema").Position>;
-    listPositions(): Promise<import("./models/position.schema").Position[]>;
-    getPosition(id: string): Promise<import("./models/position.schema").Position>;
-    updatePosition(id: string, dto: UpdatePositionDto): Promise<import("./models/position.schema").Position>;
-    deactivatePosition(id: string): Promise<import("./models/position.schema").Position>;
-    createJobRequisition(dto: CreateJobRequisitionDto): Promise<import("./models/job-requisition.schema").JobRequisition>;
-    listJobRequisitions(): Promise<import("./models/job-requisition.schema").JobRequisition[]>;
-    getJobRequisition(id: string): Promise<import("./models/job-requisition.schema").JobRequisition>;
-    updateJobRequisition(id: string, dto: UpdateJobRequisitionDto): Promise<import("./models/job-requisition.schema").JobRequisition>;
-    closeJobRequisition(id: string): Promise<import("./models/job-requisition.schema").JobRequisition>;
+    createDepartment(dto: CreateDepartmentDto): Promise<import("mongoose").Document<unknown, {}, import("./models/department.schema").Department, {}, {}> & import("./models/department.schema").Department & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }>;
+    listDepartments(): Promise<(import("mongoose").Document<unknown, {}, import("./models/department.schema").Department, {}, {}> & import("./models/department.schema").Department & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    })[]>;
+    getDepartment(id: string): Promise<import("mongoose").Document<unknown, {}, import("./models/department.schema").Department, {}, {}> & import("./models/department.schema").Department & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }>;
+    updateDepartment(id: string, dto: UpdateDepartmentDto): Promise<import("mongoose").Document<unknown, {}, import("./models/department.schema").Department, {}, {}> & import("./models/department.schema").Department & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }>;
+    deactivateDepartment(id: string): Promise<import("mongoose").Document<unknown, {}, import("./models/department.schema").Department, {}, {}> & import("./models/department.schema").Department & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }>;
+    createPosition(dto: CreatePositionDto): Promise<import("mongoose").Document<unknown, {}, import("./models/position.schema").Position, {}, {}> & import("./models/position.schema").Position & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }>;
+    listPositions(): Promise<(import("mongoose").Document<unknown, {}, import("./models/position.schema").Position, {}, {}> & import("./models/position.schema").Position & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    })[]>;
+    getPosition(id: string): Promise<import("mongoose").Document<unknown, {}, import("./models/position.schema").Position, {}, {}> & import("./models/position.schema").Position & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }>;
+    updatePosition(id: string, dto: UpdatePositionDto): Promise<import("mongoose").Document<unknown, {}, import("./models/position.schema").Position, {}, {}> & import("./models/position.schema").Position & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }>;
+    deactivatePosition(id: string): Promise<import("mongoose").Document<unknown, {}, import("./models/position.schema").Position, {}, {}> & import("./models/position.schema").Position & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }>;
+    createJobRequisition(dto: CreateJobRequisitionDto): Promise<import("mongoose").Document<unknown, {}, import("./models/job-requisition.schema").JobRequisition, {}, {}> & import("./models/job-requisition.schema").JobRequisition & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }>;
+    listJobRequisitions(): Promise<(import("mongoose").Document<unknown, {}, import("./models/job-requisition.schema").JobRequisition, {}, {}> & import("./models/job-requisition.schema").JobRequisition & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    })[]>;
+    getJobRequisition(id: string): Promise<import("mongoose").Document<unknown, {}, import("./models/job-requisition.schema").JobRequisition, {}, {}> & import("./models/job-requisition.schema").JobRequisition & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }>;
+    updateJobRequisition(id: string, dto: UpdateJobRequisitionDto): Promise<import("mongoose").Document<unknown, {}, import("./models/job-requisition.schema").JobRequisition, {}, {}> & import("./models/job-requisition.schema").JobRequisition & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }>;
+    closeJobRequisition(id: string): Promise<import("mongoose").Document<unknown, {}, import("./models/job-requisition.schema").JobRequisition, {}, {}> & import("./models/job-requisition.schema").JobRequisition & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }>;
 }

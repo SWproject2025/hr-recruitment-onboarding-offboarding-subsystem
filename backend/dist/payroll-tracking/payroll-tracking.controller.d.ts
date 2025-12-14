@@ -12,7 +12,7 @@ import { CreateRefundDto } from './dto/refunds/create-refund.dto';
 import { TaxReportDto } from './dto/reports/tax-report.dto';
 import { PayrollReportDto } from './dto/reports/payroll-report.dto';
 import { DepartmentReportDto } from './dto/reports/department-report.dto';
-import type { CurrentUserData } from '../auth/decorators/current-user.decorator';
+import type { CurrentUserData } from '../Common/Decorators/current-user.decorator';
 export declare class PayrollTrackingController {
     private readonly payrollTrackingService;
     constructor(payrollTrackingService: PayrollTrackingService);
