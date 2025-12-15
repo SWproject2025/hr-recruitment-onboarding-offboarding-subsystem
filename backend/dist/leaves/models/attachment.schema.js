@@ -35,7 +35,7 @@ __decorate([
     __metadata("design:type", Number)
 ], Attachment.prototype, "size", void 0);
 exports.Attachment = Attachment = __decorate([
-    (0, mongoose_1.Schema)({ timestamps: true })
+    (0, mongoose_1.Schema)({ collection: 'attachments', timestamps: true })
 ], Attachment);
 exports.AttachmentSchema = mongoose_1.SchemaFactory.createForClass(Attachment);
 //# sourceMappingURL=attachment.schema.js.map

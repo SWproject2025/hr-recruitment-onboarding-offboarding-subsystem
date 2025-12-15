@@ -67,7 +67,7 @@ __decorate([
     __metadata("design:type", Number)
 ], LeaveType.prototype, "maxDurationDays", void 0);
 exports.LeaveType = LeaveType = __decorate([
-    (0, mongoose_1.Schema)({ timestamps: true })
+    (0, mongoose_1.Schema)({ collection: 'leave_types', timestamps: true })
 ], LeaveType);
 exports.LeaveTypeSchema = mongoose_1.SchemaFactory.createForClass(LeaveType);
 //# sourceMappingURL=leave-type.schema.js.map

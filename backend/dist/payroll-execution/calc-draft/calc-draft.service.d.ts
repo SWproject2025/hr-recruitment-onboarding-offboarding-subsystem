@@ -1,20 +1,20 @@
 import { CreateCalcDraftDto } from './dto/create-calc-draft.dto';
-import { payrollRuns, payrollRunsDocument } from '../schemas/payrollRuns.schema';
-import { employeePayrollDetails, employeePayrollDetailsDocument } from '../schemas/employeePayrollDetails.schema';
-import { employeePenaltiesDocument } from '../schemas/employeePenalties.schema';
-import { paySlip, paySlipDocument } from '../schemas/paySlip.schema';
-import { employeeSigningBonusDocument } from '../schemas/employeeSigningBonus.schema';
-import { EmployeeTerminationResignationDocument } from '../schemas/EmployeeTerminationResignation.schema';
+import { payrollRuns } from '../models/payrollRuns.schema';
+import { employeePayrollDetails } from '../models/employeePayrollDetails.schema';
+import { employeePenalties } from '../models/employeePenalties.schema';
+import { paySlip } from '../models/payslip.schema';
+import { employeeSigningBonus } from '../models/EmployeeSigningBonus.schema';
+import { EmployeeTerminationResignation } from '../models/EmployeeTerminationResignation.schema';
 import mongoose, { Model } from 'mongoose';
 import { PayRollStatus } from '../enums/payroll-execution-enum';
 export declare class CalcDraftService {
+    private employeeSigningBonusModel;
     private payrollRunsModel;
     private employeePayrollDetailsModel;
     private employeePenaltiesModel;
     private paySlipModel;
-    private employeeSigningBonusModel;
     private employeeTerminationResignationModel;
-    constructor(payrollRunsModel: Model<payrollRunsDocument>, employeePayrollDetailsModel: Model<employeePayrollDetailsDocument>, employeePenaltiesModel: Model<employeePenaltiesDocument>, paySlipModel: Model<paySlipDocument>, employeeSigningBonusModel: Model<employeeSigningBonusDocument>, employeeTerminationResignationModel: Model<EmployeeTerminationResignationDocument>);
+    constructor(employeeSigningBonusModel: Model<employeeSigningBonus>, payrollRunsModel: Model<payrollRuns>, employeePayrollDetailsModel: Model<employeePayrollDetails>, employeePenaltiesModel: Model<employeePenalties>, paySlipModel: Model<paySlip>, employeeTerminationResignationModel: Model<EmployeeTerminationResignation>);
     createPayrollRun(createCalcDraftDto: CreateCalcDraftDto): Promise<payrollRuns>;
     createPayrollDetails(payrollRunId: mongoose.Types.ObjectId, employeeData: any[]): Promise<employeePayrollDetails[]>;
     calculateGrossSalary(employee: any): Promise<number>;

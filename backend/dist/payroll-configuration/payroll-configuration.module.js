@@ -8,9 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PayrollConfigurationModule = void 0;
 const common_1 = require("@nestjs/common");
+const mongoose_1 = require("@nestjs/mongoose");
 const payroll_configuration_service_1 = require("./payroll-configuration.service");
 const CompanyWideSettings_schema_1 = require("./models/CompanyWideSettings.schema");
-const mongoose_1 = require("@nestjs/mongoose");
 const allowance_schema_1 = require("./models/allowance.schema");
 const insuranceBrackets_schema_1 = require("./models/insuranceBrackets.schema");
 const payrollPolicies_schema_1 = require("./models/payrollPolicies.schema");
@@ -19,6 +19,7 @@ const signingBonus_schema_1 = require("./models/signingBonus.schema");
 const taxRules_schema_1 = require("./models/taxRules.schema");
 const terminationAndResignationBenefits_1 = require("./models/terminationAndResignationBenefits");
 const payGrades_schema_1 = require("./models/payGrades.schema");
+const legalRules_schema_1 = require("./models/legalRules.schema");
 const roles_gaurd_1 = require("../Common/Gaurds/roles.gaurd");
 const payroll_policy_controller_1 = require("./Controllers/payroll-policy/payroll-policy.controller");
 const allowance_controller_1 = require("./Controllers/allowance/allowance.controller");
@@ -44,14 +45,23 @@ exports.PayrollConfigurationModule = PayrollConfigurationModule = __decorate([
                 { name: payrollPolicies_schema_1.payrollPolicies.name, schema: payrollPolicies_schema_1.payrollPoliciesSchema },
                 { name: terminationAndResignationBenefits_1.terminationAndResignationBenefits.name, schema: terminationAndResignationBenefits_1.terminationAndResignationBenefitsSchema },
                 { name: CompanyWideSettings_schema_1.CompanyWideSettings.name, schema: CompanyWideSettings_schema_1.CompanyWideSettingsSchema },
-                { name: payGrades_schema_1.payGrade.name, schema: payType_schema_1.payTypeSchema }
+                { name: payGrades_schema_1.payGrade.name, schema: payGrades_schema_1.payGradeSchema },
+                { name: legalRules_schema_1.LegalRules.name, schema: legalRules_schema_1.LegalRulesSchema },
             ]),
         ],
-        controllers: [payroll_policy_controller_1.PayrollPolicyController, allowance_controller_1.AllowanceController, pay_grade_controller_1.PayGradeController, insurance_bracket_controller_1.InsuranceBracketController, company_wide_settings_controller_1.CompanyWideSettingsController,
-            legal_rules_controller_1.LegalRulesController, pay_type_controller_1.PayTypeController, signing_bonus_controller_1.SigningBonusController, termination_resignation_benefits_controller_1.TerminationResignationBenefitsController,
+        controllers: [
+            payroll_policy_controller_1.PayrollPolicyController,
+            allowance_controller_1.AllowanceController,
+            pay_grade_controller_1.PayGradeController,
+            insurance_bracket_controller_1.InsuranceBracketController,
+            company_wide_settings_controller_1.CompanyWideSettingsController,
+            legal_rules_controller_1.LegalRulesController,
+            pay_type_controller_1.PayTypeController,
+            signing_bonus_controller_1.SigningBonusController,
+            termination_resignation_benefits_controller_1.TerminationResignationBenefitsController,
         ],
         providers: [payroll_configuration_service_1.PayrollConfigurationService, roles_gaurd_1.RolesGuard],
-        exports: [payroll_configuration_service_1.PayrollConfigurationService]
+        exports: [payroll_configuration_service_1.PayrollConfigurationService],
     })
 ], PayrollConfigurationModule);
 //# sourceMappingURL=payroll-configuration.module.js.map

@@ -35,6 +35,28 @@ const update_referral_dto_1 = require("./dto/update-referral.dto");
 const create_offer_dto_1 = require("./dto/create-offer.dto");
 const update_offer_status_dto_1 = require("./dto/update-offer-status.dto");
 const respond_offer_dto_1 = require("./dto/respond-offer.dto");
+const create_contract_dto_1 = require("./dto/create-contract.dto");
+const update_contract_dto_1 = require("./dto/update-contract.dto");
+const sign_contract_dto_1 = require("./dto/sign-contract.dto");
+const filter_contracts_dto_1 = require("./dto/filter-contracts.dto");
+const create_document_dto_1 = require("./dto/create-document.dto");
+const update_document_dto_1 = require("./dto/update-document.dto");
+const filter_documents_dto_1 = require("./dto/filter-documents.dto");
+const create_onboarding_dto_1 = require("./dto/create-onboarding.dto");
+const update_onboarding_dto_1 = require("./dto/update-onboarding.dto");
+const create_onboarding_task_dto_1 = require("./dto/create-onboarding-task.dto");
+const update_onboarding_task_dto_1 = require("./dto/update-onboarding-task.dto");
+const complete_onboarding_task_dto_1 = require("./dto/complete-onboarding-task.dto");
+const filter_onboardings_dto_1 = require("./dto/filter-onboardings.dto");
+const create_termination_request_dto_1 = require("./dto/create-termination-request.dto");
+const update_termination_request_dto_1 = require("./dto/update-termination-request.dto");
+const approve_termination_dto_1 = require("./dto/approve-termination.dto");
+const reject_termination_dto_1 = require("./dto/reject-termination.dto");
+const filter_termination_request_dto_1 = require("./dto/filter-termination-request.dto");
+const create_clearance_checklist_dto_1 = require("./dto/create-clearance-checklist.dto");
+const update_clearance_checklist_dto_1 = require("./dto/update-clearance-checklist.dto");
+const update_clearance_item_dto_1 = require("./dto/update-clearance-item.dto");
+const approve_clearance_item_dto_1 = require("./dto/approve-clearance-item.dto");
 let RecruitmentController = class RecruitmentController {
     recruitmentService;
     constructor(recruitmentService) {
@@ -150,6 +172,111 @@ let RecruitmentController = class RecruitmentController {
     }
     getOfferForApplication(id) {
         return this.recruitmentService.getOfferForApplication(id);
+    }
+    createContract(dto) {
+        return this.recruitmentService.createContract(dto);
+    }
+    getContract(id) {
+        return this.recruitmentService.getContract(id);
+    }
+    updateContract(id, dto) {
+        return this.recruitmentService.updateContract(id, dto);
+    }
+    signContract(id, dto) {
+        return this.recruitmentService.signContract(id, dto);
+    }
+    getContractByOffer(offerId) {
+        return this.recruitmentService.getContractByOffer(offerId);
+    }
+    filterContracts(dto) {
+        return this.recruitmentService.filterContracts(dto);
+    }
+    uploadDocument(dto) {
+        return this.recruitmentService.uploadDocument(dto);
+    }
+    getDocument(id) {
+        return this.recruitmentService.getDocument(id);
+    }
+    updateDocument(id, dto) {
+        return this.recruitmentService.updateDocument(id, dto);
+    }
+    deleteDocument(id) {
+        return this.recruitmentService.deleteDocument(id);
+    }
+    getDocumentsForUser(userId) {
+        return this.recruitmentService.getDocumentsForUser(userId);
+    }
+    filterDocuments(dto) {
+        return this.recruitmentService.filterDocuments(dto);
+    }
+    createOnboarding(dto) {
+        return this.recruitmentService.createOnboarding(dto);
+    }
+    getOnboarding(id) {
+        return this.recruitmentService.getOnboarding(id);
+    }
+    updateOnboarding(id, dto) {
+        return this.recruitmentService.updateOnboarding(id, dto);
+    }
+    getOnboardingForEmployee(employeeId) {
+        return this.recruitmentService.getOnboardingForEmployee(employeeId);
+    }
+    filterOnboardings(dto) {
+        return this.recruitmentService.filterOnboardings(dto);
+    }
+    addOnboardingTask(id, dto) {
+        return this.recruitmentService.addOnboardingTask(id, dto);
+    }
+    updateOnboardingTask(id, taskId, dto) {
+        return this.recruitmentService.updateOnboardingTask(id, taskId, dto);
+    }
+    completeOnboardingTask(id, taskId, dto) {
+        return this.recruitmentService.completeOnboardingTask(id, taskId, dto);
+    }
+    completeOnboarding(id) {
+        return this.recruitmentService.completeOnboarding(id);
+    }
+    getOnboardingProgress(id) {
+        return this.recruitmentService.getOnboardingProgress(id);
+    }
+    createTerminationRequest(dto) {
+        return this.recruitmentService.createTerminationRequest(dto);
+    }
+    getTerminationRequest(id) {
+        return this.recruitmentService.getTerminationRequest(id);
+    }
+    updateTerminationRequest(id, dto) {
+        return this.recruitmentService.updateTerminationRequest(id, dto);
+    }
+    getTerminationForEmployee(employeeId) {
+        return this.recruitmentService.getTerminationForEmployee(employeeId);
+    }
+    filterTerminationRequests(dto) {
+        return this.recruitmentService.filterTerminationRequests(dto);
+    }
+    approveTermination(id, dto) {
+        return this.recruitmentService.approveTermination(id, dto);
+    }
+    rejectTermination(id, dto) {
+        return this.recruitmentService.rejectTermination(id, dto);
+    }
+    createClearanceChecklist(id, dto) {
+        return this.recruitmentService.createClearanceChecklist(dto);
+    }
+    getClearanceChecklist(id) {
+        return this.recruitmentService.getClearanceChecklist(id);
+    }
+    updateClearanceChecklist(id, dto) {
+        return this.recruitmentService.updateClearanceChecklist(id, dto);
+    }
+    updateClearanceItem(id, itemId, dto) {
+        return this.recruitmentService.updateClearanceItem(id, itemId, dto);
+    }
+    approveClearanceItem(id, itemId, dto) {
+        return this.recruitmentService.approveClearanceItem(id, itemId, dto);
+    }
+    getClearanceProgress(id) {
+        return this.recruitmentService.getClearanceProgress(id);
     }
 };
 exports.RecruitmentController = RecruitmentController;
@@ -423,6 +550,269 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], RecruitmentController.prototype, "getOfferForApplication", null);
+__decorate([
+    (0, common_1.Post)('contracts'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_contract_dto_1.CreateContractDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "createContract", null);
+__decorate([
+    (0, common_1.Get)('contracts/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "getContract", null);
+__decorate([
+    (0, common_1.Patch)('contracts/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_contract_dto_1.UpdateContractDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "updateContract", null);
+__decorate([
+    (0, common_1.Post)('contracts/:id/sign'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, sign_contract_dto_1.SignContractDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "signContract", null);
+__decorate([
+    (0, common_1.Get)('offers/:offerId/contract'),
+    __param(0, (0, common_1.Param)('offerId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "getContractByOffer", null);
+__decorate([
+    (0, common_1.Get)('contracts'),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [filter_contracts_dto_1.FilterContractsDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "filterContracts", null);
+__decorate([
+    (0, common_1.Post)('documents'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_document_dto_1.CreateDocumentDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "uploadDocument", null);
+__decorate([
+    (0, common_1.Get)('documents/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "getDocument", null);
+__decorate([
+    (0, common_1.Patch)('documents/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_document_dto_1.UpdateDocumentDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "updateDocument", null);
+__decorate([
+    (0, common_1.Delete)('documents/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "deleteDocument", null);
+__decorate([
+    (0, common_1.Get)('users/:userId/documents'),
+    __param(0, (0, common_1.Param)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "getDocumentsForUser", null);
+__decorate([
+    (0, common_1.Get)('documents'),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [filter_documents_dto_1.FilterDocumentsDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "filterDocuments", null);
+__decorate([
+    (0, common_1.Post)('onboarding'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_onboarding_dto_1.CreateOnboardingDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "createOnboarding", null);
+__decorate([
+    (0, common_1.Get)('onboarding/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "getOnboarding", null);
+__decorate([
+    (0, common_1.Patch)('onboarding/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_onboarding_dto_1.UpdateOnboardingDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "updateOnboarding", null);
+__decorate([
+    (0, common_1.Get)('onboarding/employee/:employeeId'),
+    __param(0, (0, common_1.Param)('employeeId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "getOnboardingForEmployee", null);
+__decorate([
+    (0, common_1.Get)('onboarding'),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [filter_onboardings_dto_1.FilterOnboardingsDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "filterOnboardings", null);
+__decorate([
+    (0, common_1.Post)('onboarding/:id/tasks'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, create_onboarding_task_dto_1.CreateOnboardingTaskDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "addOnboardingTask", null);
+__decorate([
+    (0, common_1.Patch)('onboarding/:id/tasks/:taskId'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('taskId')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, update_onboarding_task_dto_1.UpdateOnboardingTaskDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "updateOnboardingTask", null);
+__decorate([
+    (0, common_1.Post)('onboarding/:id/tasks/:taskId/complete'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('taskId')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, complete_onboarding_task_dto_1.CompleteOnboardingTaskDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "completeOnboardingTask", null);
+__decorate([
+    (0, common_1.Post)('onboarding/:id/complete'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "completeOnboarding", null);
+__decorate([
+    (0, common_1.Get)('onboarding/:id/progress'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "getOnboardingProgress", null);
+__decorate([
+    (0, common_1.Post)('termination'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_termination_request_dto_1.CreateTerminationRequestDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "createTerminationRequest", null);
+__decorate([
+    (0, common_1.Get)('termination/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "getTerminationRequest", null);
+__decorate([
+    (0, common_1.Patch)('termination/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_termination_request_dto_1.UpdateTerminationRequestDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "updateTerminationRequest", null);
+__decorate([
+    (0, common_1.Get)('termination/employee/:employeeId'),
+    __param(0, (0, common_1.Param)('employeeId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "getTerminationForEmployee", null);
+__decorate([
+    (0, common_1.Get)('termination'),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [filter_termination_request_dto_1.FilterTerminationRequestDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "filterTerminationRequests", null);
+__decorate([
+    (0, common_1.Post)('termination/:id/approve'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, approve_termination_dto_1.ApproveTerminationDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "approveTermination", null);
+__decorate([
+    (0, common_1.Post)('termination/:id/reject'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, reject_termination_dto_1.RejectTerminationDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "rejectTermination", null);
+__decorate([
+    (0, common_1.Post)('termination/:id/clearance'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, create_clearance_checklist_dto_1.CreateClearanceChecklistDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "createClearanceChecklist", null);
+__decorate([
+    (0, common_1.Get)('termination/:id/clearance'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "getClearanceChecklist", null);
+__decorate([
+    (0, common_1.Patch)('clearance/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_clearance_checklist_dto_1.UpdateClearanceChecklistDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "updateClearanceChecklist", null);
+__decorate([
+    (0, common_1.Patch)('clearance/:id/items/:itemId'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('itemId')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, update_clearance_item_dto_1.UpdateClearanceItemDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "updateClearanceItem", null);
+__decorate([
+    (0, common_1.Post)('clearance/:id/items/:itemId/approve'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('itemId')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, approve_clearance_item_dto_1.ApproveClearanceItemDto]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "approveClearanceItem", null);
+__decorate([
+    (0, common_1.Get)('clearance/:id/progress'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "getClearanceProgress", null);
 exports.RecruitmentController = RecruitmentController = __decorate([
     (0, common_1.Controller)('recruitment'),
     __metadata("design:paramtypes", [recruitment_service_1.RecruitmentService])

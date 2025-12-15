@@ -56,6 +56,9 @@ const payroll_execution_enum_1 = require("./enums/payroll-execution-enum");
 const employeePayrollDetails_schema_1 = require("./models/employeePayrollDetails.schema");
 const employeePenalties_schema_1 = require("./models/employeePenalties.schema");
 const payslip_schema_1 = require("./models/payslip.schema");
+const employee_profile_schema_1 = require("../employee-profile/models/employee-profile.schema");
+const employee_profile_enums_1 = require("../employee-profile/enums/employee-profile.enums");
+const calc_draft_service_1 = require("./calc-draft/calc-draft.service");
 let PayrollExecutionService = class PayrollExecutionService {
     employeeSigningBonusModel;
     terminationAndResignationBenefitsModel;
@@ -63,21 +66,33 @@ let PayrollExecutionService = class PayrollExecutionService {
     employeePayrollDetailsModel;
     employeePenaltiesModel;
     payslipModel;
-    constructor(employeeSigningBonusModel, terminationAndResignationBenefitsModel, payrollRunsModel, employeePayrollDetailsModel, employeePenaltiesModel, payslipModel) {
+    employeeModel;
+    calcDraftService;
+    constructor(employeeSigningBonusModel, terminationAndResignationBenefitsModel, payrollRunsModel, employeePayrollDetailsModel, employeePenaltiesModel, payslipModel, employeeModel, calcDraftService) {
         this.employeeSigningBonusModel = employeeSigningBonusModel;
         this.terminationAndResignationBenefitsModel = terminationAndResignationBenefitsModel;
         this.payrollRunsModel = payrollRunsModel;
         this.employeePayrollDetailsModel = employeePayrollDetailsModel;
         this.employeePenaltiesModel = employeePenaltiesModel;
         this.payslipModel = payslipModel;
+        this.employeeModel = employeeModel;
+        this.calcDraftService = calcDraftService;
     }
     async getPendingSigningBonuses() {
-        return await this.employeeSigningBonusModel
+        console.log('🔍 Model name:', this.employeeSigningBonusModel.modelName);
+        console.log('🔍 Collection name:', this.employeeSigningBonusModel.collection.name);
+        console.log('🔍 Status enum value:', payroll_execution_enum_1.BonusStatus.PENDING);
+        const allDocs = await this.employeeSigningBonusModel.find({}).exec();
+        console.log('🔍 Total docs in collection:', allDocs.length);
+        console.log('🔍 Sample doc:', allDocs[0]);
+        const results = await this.employeeSigningBonusModel
             .find({ status: payroll_execution_enum_1.BonusStatus.PENDING })
             .populate('employeeId', 'firstName lastName email')
             .populate('signingBonusId')
             .sort({ createdAt: -1 })
             .exec();
+        console.log('🔍 Results with PENDING status:', results.length);
+        return results;
     }
     async getSigningBonusById(id) {
         const signingBonus = await this.employeeSigningBonusModel
@@ -101,6 +116,27 @@ let PayrollExecutionService = class PayrollExecutionService {
         signingBonus.status = payroll_execution_enum_1.BonusStatus.APPROVED;
         return await signingBonus.save();
     }
+    async getAllPayrollRuns(filters) {
+        const query = {};
+        if (filters?.status)
+            query.status = filters.status;
+        if (filters?.entity)
+            query.entity = filters.entity;
+        if (filters?.startDate || filters?.endDate) {
+            query.payrollPeriod = {};
+            if (filters.startDate)
+                query.payrollPeriod.$gte = new Date(filters.startDate);
+            if (filters.endDate)
+                query.payrollPeriod.$lte = new Date(filters.endDate);
+        }
+        return await this.payrollRunsModel
+            .find(query)
+            .populate('payrollSpecialistId', 'firstName lastName email')
+            .populate('payrollManagerId', 'firstName lastName email')
+            .populate('financeStaffId', 'firstName lastName email')
+            .sort({ createdAt: -1 })
+            .exec();
+    }
     async rejectSigningBonus(id) {
         const signingBonus = await this.employeeSigningBonusModel.findById(id);
         if (!signingBonus) {
@@ -111,6 +147,99 @@ let PayrollExecutionService = class PayrollExecutionService {
         }
         signingBonus.status = payroll_execution_enum_1.BonusStatus.REJECTED;
         return await signingBonus.save();
+    }
+    async getAllPayslips(runId, employeeName, department) {
+        const query = {};
+        if (runId) {
+            const runObjectId = await this._resolveRunObjectId(runId);
+            query.payrollRunId = runObjectId;
+        }
+        let payslips = await this.payslipModel
+            .find(query)
+            .populate('employeeId', 'firstName lastName email code department')
+            .populate('payrollRunId')
+            .exec();
+        if (employeeName) {
+            payslips = payslips.filter((p) => {
+                const emp = p.employeeId;
+                if (!emp)
+                    return false;
+                const fullName = `${emp.firstName || ''} ${emp.lastName || ''}`.toLowerCase();
+                return fullName.includes(employeeName.toLowerCase());
+            });
+        }
+        if (department) {
+            payslips = payslips.filter((p) => {
+                const emp = p.employeeId;
+                return emp && emp.department === department;
+            });
+        }
+        return payslips.map((payslip) => {
+            const emp = payslip.employeeId;
+            const run = payslip.payrollRunId;
+            const allowancesTotal = Array.isArray(payslip.earningsDetails?.allowances)
+                ? payslip.earningsDetails.allowances.reduce((sum, a) => sum + (a.amount || 0), 0)
+                : 0;
+            const bonusesTotal = Array.isArray(payslip.earningsDetails?.bonuses)
+                ? payslip.earningsDetails.bonuses.reduce((sum, b) => sum + (b.givenAmount || 0), 0)
+                : 0;
+            const benefitsTotal = Array.isArray(payslip.earningsDetails?.benefits)
+                ? payslip.earningsDetails.benefits.reduce((sum, b) => sum + (b.givenAmount || 0), 0)
+                : 0;
+            const refundsTotal = Array.isArray(payslip.earningsDetails?.refunds)
+                ? payslip.earningsDetails.refunds.reduce((sum, r) => sum + (r.amount || 0), 0)
+                : 0;
+            const taxesTotal = Array.isArray(payslip.deductionsDetails?.taxes)
+                ? payslip.deductionsDetails.taxes.reduce((sum, t) => sum + (t.amount || 0), 0)
+                : 0;
+            const insuranceTotal = Array.isArray(payslip.deductionsDetails?.insurances)
+                ? payslip.deductionsDetails.insurances.reduce((sum, i) => sum + (i.amount || 0), 0)
+                : 0;
+            let penaltiesTotal = 0;
+            if (payslip.deductionsDetails?.penalties) {
+                const penalties = payslip.deductionsDetails.penalties;
+                if (Array.isArray(penalties.penalties)) {
+                    penaltiesTotal = penalties.penalties.reduce((sum, p) => sum + (p.amount || 0), 0);
+                }
+            }
+            return {
+                _id: payslip._id,
+                employeeId: emp?._id,
+                employeeName: emp
+                    ? `${emp.firstName || ''} ${emp.lastName || ''}`.trim()
+                    : 'Unknown',
+                employeeCode: emp?.code || emp?._id || 'N/A',
+                department: emp?.department || 'N/A',
+                runPeriod: run?.payrollPeriod || new Date(),
+                grossSalary: payslip.totalGrossSalary || 0,
+                deductions: payslip.totaDeductions || 0,
+                netPay: payslip.netPay || 0,
+                status: payslip.paymentStatus || 'pending',
+                earnings: {
+                    baseSalary: payslip.earningsDetails?.baseSalary || 0,
+                    allowances: allowancesTotal,
+                    bonuses: bonusesTotal,
+                    benefits: benefitsTotal,
+                    refunds: refundsTotal,
+                },
+                deductionsBreakdown: {
+                    taxes: taxesTotal,
+                    insurance: insuranceTotal,
+                    penalties: penaltiesTotal,
+                },
+            };
+        });
+    }
+    async getPayslipById(id) {
+        const payslip = await this.payslipModel
+            .findById(id)
+            .populate('employeeId')
+            .populate('payrollRunId')
+            .exec();
+        if (!payslip) {
+            throw new common_1.NotFoundException('Payslip not found');
+        }
+        return payslip;
     }
     async editSigningBonus(id, givenAmount, paymentDate) {
         const signingBonus = await this.employeeSigningBonusModel.findById(id);
@@ -279,33 +408,68 @@ let PayrollExecutionService = class PayrollExecutionService {
         return await payrollRun.save();
     }
     async startPayrollInitiation(runId, payrollPeriod, payrollSpecialistId, entity) {
-        const preRunCheck = await this.checkPreRunApprovalsComplete();
-        if (!preRunCheck.allApprovalsComplete) {
+        try {
+            console.log('🚀 Starting payroll initiation...', { runId, payrollPeriod, entity });
+            const preRunCheck = await this.checkPreRunApprovalsComplete();
+            console.log('✅ Pre-run check:', preRunCheck);
+            if (!preRunCheck.allApprovalsComplete) {
+                throw new common_1.BadRequestException({
+                    message: 'Cannot start payroll. Pending pre-run approvals.',
+                    details: preRunCheck,
+                });
+            }
+            const validation = await this.validatePayrollPeriod(payrollPeriod);
+            console.log('✅ Period validation:', validation);
+            if (!validation.isValid) {
+                throw new common_1.BadRequestException({
+                    message: 'Invalid payroll period',
+                    errors: validation.errors,
+                });
+            }
+            console.log('📝 Creating payroll run...');
+            const payrollRun = new this.payrollRunsModel({
+                runId,
+                payrollPeriod,
+                status: payroll_execution_enum_1.PayRollStatus.DRAFT,
+                entity,
+                employees: 0,
+                exceptions: 0,
+                totalnetpay: 0,
+                payrollSpecialistId,
+                paymentStatus: payroll_execution_enum_1.PaySlipPaymentStatus.PENDING,
+            });
+            await payrollRun.save();
+            console.log('✅ Payroll run created:', payrollRun._id);
+            console.log('👥 Fetching active employees...');
+            const employees = await this.employeeModel
+                .find({ status: employee_profile_enums_1.EmployeeStatus.ACTIVE })
+                .lean()
+                .exec();
+            console.log(`✅ Found ${employees.length} active employees`);
+            if (!employees || employees.length === 0) {
+                throw new common_1.BadRequestException('No active employees found');
+            }
+            console.log('⚙️ Processing draft generation...');
+            const runObjectId = new mongoose_2.default.Types.ObjectId(payrollRun._id);
+            const result = await this.calcDraftService.processDraftGeneration(runObjectId, employees);
+            console.log('✅ Draft generation complete:', {
+                employees: result.run.employees,
+                exceptions: result.exceptionsCount,
+                totalNetPay: result.run.totalnetpay
+            });
+            return await this.payrollRunsModel.findById(payrollRun._id).exec();
+        }
+        catch (error) {
+            console.error('❌ Error in startPayrollInitiation:', error);
+            if (error instanceof common_1.BadRequestException) {
+                throw error;
+            }
             throw new common_1.BadRequestException({
-                message: 'Cannot start payroll. Pending pre-run approvals.',
-                details: preRunCheck,
+                message: 'Failed to create payroll run',
+                error: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
             });
         }
-        const validation = await this.validatePayrollPeriod(payrollPeriod);
-        if (!validation.isValid) {
-            throw new common_1.BadRequestException({
-                message: 'Invalid payroll period',
-                errors: validation.errors,
-            });
-        }
-        const payrollRun = new this.payrollRunsModel({
-            runId,
-            payrollPeriod,
-            status: payroll_execution_enum_1.PayRollStatus.DRAFT,
-            entity,
-            employees: 0,
-            exceptions: 0,
-            totalnetpay: 0,
-            payrollSpecialistId,
-            paymentStatus: payroll_execution_enum_1.PaySlipPaymentStatus.PENDING,
-        });
-        await payrollRun.save();
-        return payrollRun;
     }
     async checkPreRunApprovalsComplete() {
         const pendingBonuses = await this.employeeSigningBonusModel.countDocuments({
@@ -358,7 +522,11 @@ let PayrollExecutionService = class PayrollExecutionService {
         if (approverId)
             run.payrollManagerId = approverId;
         await run.save();
-        return { message: 'Payroll manager approved', runId: run.runId, managerApprovalDate: run.managerApprovalDate };
+        return {
+            message: 'Payroll manager approved',
+            runId: run.runId,
+            managerApprovalDate: run.managerApprovalDate,
+        };
     }
     async rejectByPayrollManager(runId, reason, approverId) {
         if (!reason)
@@ -389,7 +557,11 @@ let PayrollExecutionService = class PayrollExecutionService {
             run.financeStaffId = approverId;
         run.paymentStatus = payroll_execution_enum_1.PaySlipPaymentStatus.PENDING;
         await run.save();
-        return { message: 'Finance approved', runId: run.runId, financeApprovalDate: run.financeApprovalDate };
+        return {
+            message: 'Finance approved',
+            runId: run.runId,
+            financeApprovalDate: run.financeApprovalDate,
+        };
     }
     async rejectByFinanceStaff(runId, reason, approverId) {
         if (!reason)
@@ -448,7 +620,10 @@ let PayrollExecutionService = class PayrollExecutionService {
         if (!amount || isNaN(amount))
             throw new common_1.BadRequestException('Amount must be a valid number');
         const runObjectId = await this._resolveRunObjectId(runId);
-        const details = await this.employeePayrollDetailsModel.findOne({ payrollRunId: runObjectId, employeeId: new mongoose_2.default.Types.ObjectId(employeeId) });
+        const details = await this.employeePayrollDetailsModel.findOne({
+            payrollRunId: runObjectId,
+            employeeId: new mongoose_2.default.Types.ObjectId(employeeId),
+        });
         if (!details)
             throw new common_1.NotFoundException('Employee payroll details not found for this run');
         switch (type) {
@@ -468,20 +643,27 @@ let PayrollExecutionService = class PayrollExecutionService {
                 throw new common_1.BadRequestException('Unsupported adjustment type');
         }
         if (reason) {
-            details.exceptions = details.exceptions ? `${details.exceptions}; ${reason}` : reason;
+            details.exceptions = details.exceptions
+                ? `${details.exceptions}; ${reason}`
+                : reason;
         }
         await details.save();
         return details;
     }
     async resolveException(runId, employeeId, resolutionNote) {
         const runObjectId = await this._resolveRunObjectId(runId);
-        const details = await this.employeePayrollDetailsModel.findOne({ payrollRunId: runObjectId, employeeId: new mongoose_2.default.Types.ObjectId(employeeId) });
+        const details = await this.employeePayrollDetailsModel.findOne({
+            payrollRunId: runObjectId,
+            employeeId: new mongoose_2.default.Types.ObjectId(employeeId),
+        });
         if (!details)
             throw new common_1.NotFoundException('Employee payroll details not found for this run');
         if (!details.exceptions) {
             return { message: 'No exception to resolve' };
         }
-        details.exceptions = resolutionNote ? `${details.exceptions} -- RESOLVED: ${resolutionNote}` : undefined;
+        details.exceptions = resolutionNote
+            ? `${details.exceptions} -- RESOLVED: ${resolutionNote}`
+            : undefined;
         await details.save();
         return { message: 'Exception resolved', employeeId, runId };
     }
@@ -490,13 +672,17 @@ let PayrollExecutionService = class PayrollExecutionService {
         const run = await this.payrollRunsModel.findById(runObjectId);
         if (!run)
             throw new common_1.NotFoundException('Payroll run not found');
-        const detailsList = await this.employeePayrollDetailsModel.find({ payrollRunId: runObjectId });
+        const detailsList = await this.employeePayrollDetailsModel.find({
+            payrollRunId: runObjectId,
+        });
         if (!detailsList || detailsList.length === 0) {
             throw new common_1.BadRequestException('No employee payroll details found for this run');
         }
         const created = [];
         for (const d of detailsList) {
-            const penaltiesDoc = await this.employeePenaltiesModel.findOne({ employeeId: d.employeeId });
+            const penaltiesDoc = await this.employeePenaltiesModel.findOne({
+                employeeId: d.employeeId,
+            });
             const payslipDoc = {
                 employeeId: d.employeeId,
                 payrollRunId: runObjectId,
@@ -510,9 +696,17 @@ let PayrollExecutionService = class PayrollExecutionService {
                 deductionsDetails: {
                     taxes: [],
                     insurances: [],
-                    penalties: penaltiesDoc ? { employeeId: penaltiesDoc.employeeId, penalties: penaltiesDoc.penalties } : undefined,
+                    penalties: penaltiesDoc
+                        ? {
+                            employeeId: penaltiesDoc.employeeId,
+                            penalties: penaltiesDoc.penalties,
+                        }
+                        : undefined,
                 },
-                totalGrossSalary: (d.baseSalary ?? 0) + (d.allowances ?? 0) + (d.bonus ?? 0) + (d.benefit ?? 0),
+                totalGrossSalary: (d.baseSalary ?? 0) +
+                    (d.allowances ?? 0) +
+                    (d.bonus ?? 0) +
+                    (d.benefit ?? 0),
                 totaDeductions: d.deductions ?? 0,
                 netPay: d.netPay ?? 0,
                 paymentStatus: payroll_execution_enum_1.PaySlipPaymentStatus.PENDING,
@@ -524,12 +718,17 @@ let PayrollExecutionService = class PayrollExecutionService {
         run.exceptions = detailsList.filter((x) => !!x.exceptions).length;
         run.totalnetpay = detailsList.reduce((s, x) => s + (x.netPay ?? 0), 0);
         await run.save();
-        return { count: created.length, payslips: created.map((p) => ({ id: p._id, employeeId: p.employeeId })) };
+        return {
+            count: created.length,
+            payslips: created.map((p) => ({ id: p._id, employeeId: p.employeeId })),
+        };
     }
     async distributePayslips(runId) {
         const runObjectId = await this._resolveRunObjectId(runId);
         const res = await this.payslipModel.updateMany({ payrollRunId: runObjectId }, { paymentStatus: payroll_execution_enum_1.PaySlipPaymentStatus.PENDING });
-        return { modifiedCount: res.modifiedCount ?? res.nModified ?? 0 };
+        return {
+            modifiedCount: res.modifiedCount ?? res.nModified ?? 0,
+        };
     }
     async markPayrollAsPaid(runId) {
         const runObjectId = await this._resolveRunObjectId(runId);
@@ -539,7 +738,10 @@ let PayrollExecutionService = class PayrollExecutionService {
         const res = await this.payslipModel.updateMany({ payrollRunId: runObjectId }, { paymentStatus: payroll_execution_enum_1.PaySlipPaymentStatus.PAID });
         run.paymentStatus = payroll_execution_enum_1.PaySlipPaymentStatus.PAID;
         await run.save();
-        return { modifiedCount: res.modifiedCount ?? res.nModified ?? 0, runPaymentStatus: run.paymentStatus };
+        return {
+            modifiedCount: res.modifiedCount ?? res.nModified ?? 0,
+            runPaymentStatus: run.paymentStatus,
+        };
     }
     async flagPayrollExceptions(payrollRunId) {
         const runObjectId = await this._resolveRunObjectId(payrollRunId);
@@ -680,11 +882,14 @@ exports.PayrollExecutionService = PayrollExecutionService = __decorate([
     __param(3, (0, mongoose_1.InjectModel)(employeePayrollDetails_schema_1.employeePayrollDetails.name)),
     __param(4, (0, mongoose_1.InjectModel)(employeePenalties_schema_1.employeePenalties.name)),
     __param(5, (0, mongoose_1.InjectModel)(payslip_schema_1.paySlip.name)),
+    __param(6, (0, mongoose_1.InjectModel)(employee_profile_schema_1.EmployeeProfile.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model])
+        mongoose_2.Model,
+        mongoose_2.Model,
+        calc_draft_service_1.CalcDraftService])
 ], PayrollExecutionService);
 //# sourceMappingURL=payroll-execution.service.js.map

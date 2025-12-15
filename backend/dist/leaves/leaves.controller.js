@@ -11,18 +11,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LeavesController = void 0;
 const common_1 = require("@nestjs/common");
 const leaves_service_1 = require("./leaves.service");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_guard_1 = require("../auth/guards/roles.guard");
-const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const roles_gaurd_1 = require("../Common/Gaurds/roles.gaurd");
+const roles_decorator_1 = require("../Common/Decorators/roles.decorator");
+const current_user_decorator_1 = require("../Common/Decorators/current-user.decorator");
 const employee_profile_enums_1 = require("../employee-profile/enums/employee-profile.enums");
 const leave_request_dto_1 = require("./dto/leave-request.dto");
-const leave_status_enum_1 = require("../enums/leave-status.enum");
+const leave_status_enum_1 = require("./enums/leave-status.enum");
 let LeavesController = class LeavesController {
     leavesService;
     constructor(leavesService) {
@@ -162,7 +161,7 @@ __decorate([
     __param(2, (0, common_1.Query)('page')),
     __param(3, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, typeof (_a = typeof leave_status_enum_1.LeaveStatus !== "undefined" && leave_status_enum_1.LeaveStatus) === "function" ? _a : Object, String, String]),
+    __metadata("design:paramtypes", [Object, String, String, String]),
     __metadata("design:returntype", Promise)
 ], LeavesController.prototype, "getMyLeaveRequests", null);
 __decorate([
@@ -249,7 +248,7 @@ __decorate([
     __param(1, (0, common_1.Query)('page')),
     __param(2, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof leave_status_enum_1.LeaveStatus !== "undefined" && leave_status_enum_1.LeaveStatus) === "function" ? _b : Object, String, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], LeavesController.prototype, "getAllLeaveRequestsForHR", null);
 __decorate([
@@ -368,7 +367,7 @@ __decorate([
 ], LeavesController.prototype, "configureCalendar", null);
 exports.LeavesController = LeavesController = __decorate([
     (0, common_1.Controller)('leaves'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_gaurd_1.RolesGuard),
     __metadata("design:paramtypes", [leaves_service_1.LeavesService])
 ], LeavesController);
 //# sourceMappingURL=leaves.controller.js.map

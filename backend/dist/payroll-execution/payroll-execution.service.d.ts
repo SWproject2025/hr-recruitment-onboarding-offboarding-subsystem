@@ -2,10 +2,12 @@ import mongoose, { Model } from 'mongoose';
 import { employeeSigningBonus } from './models/EmployeeSigningBonus.schema';
 import { EmployeeTerminationResignation } from './models/EmployeeTerminationResignation.schema';
 import { payrollRuns } from './models/payrollRuns.schema';
-import { PayRollStatus } from './enums/payroll-execution-enum';
+import { PayRollStatus, PaySlipPaymentStatus } from './enums/payroll-execution-enum';
 import { employeePayrollDetails } from './models/employeePayrollDetails.schema';
 import { employeePenalties } from './models/employeePenalties.schema';
 import { paySlip } from './models/payslip.schema';
+import { EmployeeProfile } from '../employee-profile/models/employee-profile.schema';
+import { CalcDraftService } from './calc-draft/calc-draft.service';
 export declare class PayrollExecutionService {
     private employeeSigningBonusModel;
     private terminationAndResignationBenefitsModel;
@@ -13,7 +15,9 @@ export declare class PayrollExecutionService {
     private employeePayrollDetailsModel;
     private employeePenaltiesModel;
     private payslipModel;
-    constructor(employeeSigningBonusModel: Model<employeeSigningBonus>, terminationAndResignationBenefitsModel: Model<EmployeeTerminationResignation>, payrollRunsModel: Model<payrollRuns>, employeePayrollDetailsModel: Model<employeePayrollDetails>, employeePenaltiesModel: Model<employeePenalties>, payslipModel: Model<paySlip>);
+    private employeeModel;
+    private calcDraftService;
+    constructor(employeeSigningBonusModel: Model<employeeSigningBonus>, terminationAndResignationBenefitsModel: Model<EmployeeTerminationResignation>, payrollRunsModel: Model<payrollRuns>, employeePayrollDetailsModel: Model<employeePayrollDetails>, employeePenaltiesModel: Model<employeePenalties>, payslipModel: Model<paySlip>, employeeModel: Model<EmployeeProfile>, calcDraftService: CalcDraftService);
     getPendingSigningBonuses(): Promise<(mongoose.Document<unknown, {}, employeeSigningBonus, {}, {}> & employeeSigningBonus & {
         _id: mongoose.Types.ObjectId;
     } & {
@@ -29,7 +33,41 @@ export declare class PayrollExecutionService {
     } & {
         __v: number;
     }>;
+    getAllPayrollRuns(filters?: any): Promise<(mongoose.Document<unknown, {}, payrollRuns, {}, {}> & payrollRuns & {
+        _id: mongoose.Types.ObjectId;
+    } & {
+        __v: number;
+    })[]>;
     rejectSigningBonus(id: string): Promise<mongoose.Document<unknown, {}, employeeSigningBonus, {}, {}> & employeeSigningBonus & {
+        _id: mongoose.Types.ObjectId;
+    } & {
+        __v: number;
+    }>;
+    getAllPayslips(runId?: string, employeeName?: string, department?: string): Promise<{
+        _id: mongoose.Types.ObjectId;
+        employeeId: any;
+        employeeName: string;
+        employeeCode: any;
+        department: any;
+        runPeriod: any;
+        grossSalary: number;
+        deductions: number;
+        netPay: number;
+        status: PaySlipPaymentStatus;
+        earnings: {
+            baseSalary: number;
+            allowances: any;
+            bonuses: any;
+            benefits: any;
+            refunds: any;
+        };
+        deductionsBreakdown: {
+            taxes: any;
+            insurance: any;
+            penalties: number;
+        };
+    }[]>;
+    getPayslipById(id: string): Promise<mongoose.Document<unknown, {}, paySlip, {}, {}> & paySlip & {
         _id: mongoose.Types.ObjectId;
     } & {
         __v: number;
@@ -95,11 +133,11 @@ export declare class PayrollExecutionService {
     } & {
         __v: number;
     }>;
-    startPayrollInitiation(runId: string, payrollPeriod: Date, payrollSpecialistId: string, entity: string): Promise<mongoose.Document<unknown, {}, payrollRuns, {}, {}> & payrollRuns & {
+    startPayrollInitiation(runId: string, payrollPeriod: Date, payrollSpecialistId: string, entity: string): Promise<(mongoose.Document<unknown, {}, payrollRuns, {}, {}> & payrollRuns & {
         _id: mongoose.Types.ObjectId;
     } & {
         __v: number;
-    }>;
+    }) | null>;
     checkPreRunApprovalsComplete(): Promise<{
         allApprovalsComplete: boolean;
         pendingSigningBonuses: number;

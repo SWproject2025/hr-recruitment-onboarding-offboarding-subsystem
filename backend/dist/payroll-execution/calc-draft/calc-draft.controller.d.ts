@@ -5,28 +5,28 @@ import { PayRollStatus } from '../enums/payroll-execution-enum';
 export declare class CalcDraftController {
     private readonly calcDraftService;
     constructor(calcDraftService: CalcDraftService);
-    createPayrollDraft(createCalcDraftDto: CreateCalcDraftDto): Promise<payrollRuns>;
+    createPayrollDraft(createCalcDraftDto: CreateCalcDraftDto): Promise<import("../models/payrollRuns.schema").payrollRuns>;
     processDraftGeneration(id: string, employeeData: any[]): Promise<{
-        run: payrollRuns;
-        payrollDetails: employeePayrollDetails[];
+        run: import("../models/payrollRuns.schema").payrollRuns;
+        payrollDetails: import("../models/employeePayrollDetails.schema").employeePayrollDetails[];
         exceptionsCount: number;
     }>;
-    updateDraft(id: string, updateCalcDraftDto: UpdateCalcDraftDto): Promise<payrollRuns>;
+    updateDraft(id: string, updateCalcDraftDto: UpdateCalcDraftDto): Promise<import("../models/payrollRuns.schema").payrollRuns>;
     updateDraftStatus(id: string, statusDto: {
         status: PayRollStatus;
-    }): Promise<payrollRuns>;
+    }): Promise<import("../models/payrollRuns.schema").payrollRuns>;
     addPenalty(employeeId: string, addPenaltyDto: any): {
         message: string;
         employeeId: string;
         penalty: any;
     };
-    getExceptionsByDraft(draftId: string): Promise<employeePayrollDetails[]>;
+    getExceptionsByDraft(draftId: string): Promise<import("../models/employeePayrollDetails.schema").employeePayrollDetails[]>;
     recalculateEmployeeSalary(draftId: string, employeeId: string, employeeData: any): Promise<{
-        payrollDetail: employeePayrollDetails;
+        payrollDetail: import("../models/employeePayrollDetails.schema").employeePayrollDetails;
         salaryData: any;
         exceptions: string[];
     }>;
-    generatePayslip(draftId: string, employeeId: string): Promise<paySlip>;
+    generatePayslip(draftId: string, employeeId: string): Promise<import("../models/payslip.schema").paySlip>;
     getSalaryBreakdown(employeeId: string): Promise<{
         message: string;
         employeeId: string;

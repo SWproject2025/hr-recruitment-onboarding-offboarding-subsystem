@@ -24,11 +24,19 @@ const interview_schema_1 = require("./models/interview.schema");
 const assessment_result_schema_1 = require("./models/assessment-result.schema");
 const referral_schema_1 = require("./models/referral.schema");
 const offer_schema_1 = require("./models/offer.schema");
+const contract_schema_1 = require("./models/contract.schema");
+const document_schema_1 = require("./models/document.schema");
+const onboarding_schema_1 = require("./models/onboarding.schema");
+const termination_request_schema_1 = require("./models/termination-request.schema");
+const clearance_checklist_schema_1 = require("./models/clearance-checklist.schema");
 const application_stage_enum_1 = require("./enums/application-stage.enum");
 const application_status_enum_1 = require("./enums/application-status.enum");
 const interview_status_enum_1 = require("./enums/interview-status.enum");
 const offer_response_status_enum_1 = require("./enums/offer-response-status.enum");
 const offer_final_status_enum_1 = require("./enums/offer-final-status.enum");
+const onboarding_task_status_enum_1 = require("./enums/onboarding-task-status.enum");
+const termination_status_enum_1 = require("./enums/termination-status.enum");
+const approval_status_enum_1 = require("./enums/approval-status.enum");
 let RecruitmentService = class RecruitmentService {
     jobTemplateModel;
     jobRequisitionModel;
@@ -38,7 +46,12 @@ let RecruitmentService = class RecruitmentService {
     assessmentResultModel;
     referralModel;
     offerModel;
-    constructor(jobTemplateModel, jobRequisitionModel, applicationModel, historyModel, interviewModel, assessmentResultModel, referralModel, offerModel) {
+    contractModel;
+    documentModel;
+    onboardingModel;
+    terminationModel;
+    clearanceModel;
+    constructor(jobTemplateModel, jobRequisitionModel, applicationModel, historyModel, interviewModel, assessmentResultModel, referralModel, offerModel, contractModel, documentModel, onboardingModel, terminationModel, clearanceModel) {
         this.jobTemplateModel = jobTemplateModel;
         this.jobRequisitionModel = jobRequisitionModel;
         this.applicationModel = applicationModel;
@@ -47,6 +60,11 @@ let RecruitmentService = class RecruitmentService {
         this.assessmentResultModel = assessmentResultModel;
         this.referralModel = referralModel;
         this.offerModel = offerModel;
+        this.contractModel = contractModel;
+        this.documentModel = documentModel;
+        this.onboardingModel = onboardingModel;
+        this.terminationModel = terminationModel;
+        this.clearanceModel = clearanceModel;
     }
     async logHistory(applicationId, oldStage, newStage, oldStatus, newStatus, changedBy) {
         await this.historyModel.create({
@@ -417,6 +435,9 @@ let RecruitmentService = class RecruitmentService {
         app.status = application_status_enum_1.ApplicationStatus.HIRED;
         await app.save();
         await this.logHistory(app._id, app.currentStage, app.currentStage, oldStatus, application_status_enum_1.ApplicationStatus.HIRED, dto.changedBy);
+        await this.createOnboarding({
+            employeeId: app.candidateId.toString(),
+        });
         return offer;
     }
     async rejectOffer(id, dto) {
@@ -438,6 +459,356 @@ let RecruitmentService = class RecruitmentService {
             .findOne({ applicationId: new mongoose_2.Types.ObjectId(applicationId) })
             .exec();
     }
+    async createContract(dto) {
+        const contract = await this.contractModel.create(dto);
+        return contract;
+    }
+    async updateContract(id, dto) {
+        const contract = await this.contractModel
+            .findByIdAndUpdate(id, dto, { new: true })
+            .exec();
+        if (!contract)
+            throw new common_1.NotFoundException('Contract not found');
+        return contract;
+    }
+    async getContract(id) {
+        const contract = await this.contractModel.findById(id).exec();
+        if (!contract)
+            throw new common_1.NotFoundException('Contract not found');
+        return contract;
+    }
+    async getContractByOffer(offerId) {
+        return this.contractModel
+            .findOne({ offerId: new mongoose_2.Types.ObjectId(offerId) })
+            .exec();
+    }
+    async signContract(id, dto) {
+        const contract = await this.contractModel.findById(id).exec();
+        if (!contract)
+            throw new common_1.NotFoundException('Contract not found');
+        if (dto.signerRole === 'employee') {
+            contract.employeeSignatureUrl = dto.signatureUrl;
+            contract.employeeSignedAt = new Date();
+        }
+        else {
+            contract.employerSignatureUrl = dto.signatureUrl;
+            contract.employerSignedAt = new Date();
+        }
+        await contract.save();
+        return contract;
+    }
+    async filterContracts(dto) {
+        const filter = {};
+        if (dto.offerId)
+            filter.offerId = new mongoose_2.Types.ObjectId(dto.offerId);
+        return this.contractModel.find(filter).exec();
+    }
+    async uploadDocument(dto) {
+        const document = await this.documentModel.create({
+            ...dto,
+            uploadedAt: new Date(),
+        });
+        return document;
+    }
+    async updateDocument(id, dto) {
+        const document = await this.documentModel
+            .findByIdAndUpdate(id, dto, { new: true })
+            .exec();
+        if (!document)
+            throw new common_1.NotFoundException('Document not found');
+        return document;
+    }
+    async deleteDocument(id) {
+        const document = await this.documentModel.findByIdAndDelete(id).exec();
+        if (!document)
+            throw new common_1.NotFoundException('Document not found');
+        return document;
+    }
+    async getDocument(id) {
+        const document = await this.documentModel.findById(id).exec();
+        if (!document)
+            throw new common_1.NotFoundException('Document not found');
+        return document;
+    }
+    async getDocumentsForUser(userId) {
+        return this.documentModel
+            .find({ ownerId: new mongoose_2.Types.ObjectId(userId) })
+            .exec();
+    }
+    async getDocumentsByType(type) {
+        return this.documentModel.find({ type }).exec();
+    }
+    async filterDocuments(dto) {
+        const filter = {};
+        if (dto.ownerId)
+            filter.ownerId = new mongoose_2.Types.ObjectId(dto.ownerId);
+        if (dto.type)
+            filter.type = dto.type;
+        return this.documentModel.find(filter).exec();
+    }
+    async createOnboarding(dto) {
+        const defaultTasks = dto.tasks || [
+            { name: 'Upload ID Documents', department: 'HR', deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
+            { name: 'Email and System Setup', department: 'IT', deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) },
+            { name: 'Office Access Card', department: 'Admin', deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000) },
+            { name: 'Benefits Enrollment', department: 'HR', deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) },
+            { name: 'Orientation Training', department: 'HR', deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
+        ];
+        const onboarding = await this.onboardingModel.create({
+            employeeId: new mongoose_2.Types.ObjectId(dto.employeeId),
+            tasks: defaultTasks.map(task => ({
+                ...task,
+                status: onboarding_task_status_enum_1.OnboardingTaskStatus.PENDING,
+            })),
+            completed: false,
+        });
+        return onboarding;
+    }
+    async updateOnboarding(id, dto) {
+        const onboarding = await this.onboardingModel
+            .findByIdAndUpdate(id, dto, { new: true })
+            .exec();
+        if (!onboarding)
+            throw new common_1.NotFoundException('Onboarding not found');
+        return onboarding;
+    }
+    async getOnboarding(id) {
+        const onboarding = await this.onboardingModel.findById(id).exec();
+        if (!onboarding)
+            throw new common_1.NotFoundException('Onboarding not found');
+        return onboarding;
+    }
+    async getOnboardingForEmployee(employeeId) {
+        return this.onboardingModel
+            .findOne({ employeeId: new mongoose_2.Types.ObjectId(employeeId) })
+            .exec();
+    }
+    async filterOnboardings(dto) {
+        const filter = {};
+        if (dto.employeeId)
+            filter.employeeId = new mongoose_2.Types.ObjectId(dto.employeeId);
+        if (dto.completed !== undefined)
+            filter.completed = dto.completed;
+        return this.onboardingModel.find(filter).exec();
+    }
+    async addOnboardingTask(onboardingId, dto) {
+        const onboarding = await this.onboardingModel.findById(onboardingId).exec();
+        if (!onboarding)
+            throw new common_1.NotFoundException('Onboarding not found');
+        onboarding.tasks.push({
+            ...dto,
+            status: onboarding_task_status_enum_1.OnboardingTaskStatus.PENDING,
+        });
+        await onboarding.save();
+        return onboarding;
+    }
+    async updateOnboardingTask(onboardingId, taskId, dto) {
+        const onboarding = await this.onboardingModel.findById(onboardingId).exec();
+        if (!onboarding)
+            throw new common_1.NotFoundException('Onboarding not found');
+        const task = onboarding.tasks.id(taskId);
+        if (!task)
+            throw new common_1.NotFoundException('Task not found');
+        Object.assign(task, dto);
+        await onboarding.save();
+        return onboarding;
+    }
+    async completeOnboardingTask(onboardingId, taskId, dto) {
+        const onboarding = await this.onboardingModel.findById(onboardingId).exec();
+        if (!onboarding)
+            throw new common_1.NotFoundException('Onboarding not found');
+        const task = onboarding.tasks.id(taskId);
+        if (!task)
+            throw new common_1.NotFoundException('Task not found');
+        task.status = onboarding_task_status_enum_1.OnboardingTaskStatus.COMPLETED;
+        task.completedAt = new Date();
+        if (dto.documentId) {
+            task.documentId = new mongoose_2.Types.ObjectId(dto.documentId);
+        }
+        if (dto.notes) {
+            task.notes = dto.notes;
+        }
+        await onboarding.save();
+        return onboarding;
+    }
+    async completeOnboarding(id) {
+        const onboarding = await this.onboardingModel.findById(id).exec();
+        if (!onboarding)
+            throw new common_1.NotFoundException('Onboarding not found');
+        const allCompleted = onboarding.tasks.every((task) => task.status === onboarding_task_status_enum_1.OnboardingTaskStatus.COMPLETED);
+        if (!allCompleted) {
+            throw new common_1.BadRequestException('Not all tasks are completed');
+        }
+        onboarding.completed = true;
+        onboarding.completedAt = new Date();
+        await onboarding.save();
+        return onboarding;
+    }
+    async getOnboardingProgress(id) {
+        const onboarding = await this.onboardingModel.findById(id).exec();
+        if (!onboarding)
+            throw new common_1.NotFoundException('Onboarding not found');
+        const totalTasks = onboarding.tasks.length;
+        const completedTasks = onboarding.tasks.filter((task) => task.status === onboarding_task_status_enum_1.OnboardingTaskStatus.COMPLETED).length;
+        const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+        return {
+            totalTasks,
+            completedTasks,
+            progress: Math.round(progress),
+            onboarding,
+        };
+    }
+    async createTerminationRequest(dto) {
+        const termination = await this.terminationModel.create({
+            ...dto,
+            employeeId: new mongoose_2.Types.ObjectId(dto.employeeId),
+            contractId: new mongoose_2.Types.ObjectId(dto.contractId),
+            status: termination_status_enum_1.TerminationStatus.PENDING,
+        });
+        return termination;
+    }
+    async updateTerminationRequest(id, dto) {
+        const termination = await this.terminationModel
+            .findByIdAndUpdate(id, dto, { new: true })
+            .exec();
+        if (!termination)
+            throw new common_1.NotFoundException('Termination request not found');
+        return termination;
+    }
+    async getTerminationRequest(id) {
+        const termination = await this.terminationModel.findById(id).exec();
+        if (!termination)
+            throw new common_1.NotFoundException('Termination request not found');
+        return termination;
+    }
+    async getTerminationForEmployee(employeeId) {
+        return this.terminationModel
+            .findOne({ employeeId: new mongoose_2.Types.ObjectId(employeeId) })
+            .sort({ createdAt: -1 })
+            .exec();
+    }
+    async filterTerminationRequests(dto) {
+        const filter = {};
+        if (dto.employeeId)
+            filter.employeeId = new mongoose_2.Types.ObjectId(dto.employeeId);
+        if (dto.status)
+            filter.status = dto.status;
+        if (dto.initiator)
+            filter.initiator = dto.initiator;
+        return this.terminationModel.find(filter).exec();
+    }
+    async approveTermination(id, dto) {
+        const termination = await this.terminationModel.findById(id).exec();
+        if (!termination)
+            throw new common_1.NotFoundException('Termination request not found');
+        termination.status = termination_status_enum_1.TerminationStatus.APPROVED;
+        termination.hrComments = dto.hrComments;
+        termination.terminationDate = dto.terminationDate;
+        await termination.save();
+        await this.createClearanceChecklist({
+            terminationId: id,
+            departments: ['IT', 'Finance', 'Facilities', 'HR', 'Admin'],
+        });
+        return termination;
+    }
+    async rejectTermination(id, dto) {
+        const termination = await this.terminationModel.findById(id).exec();
+        if (!termination)
+            throw new common_1.NotFoundException('Termination request not found');
+        termination.status = termination_status_enum_1.TerminationStatus.REJECTED;
+        termination.hrComments = dto.hrComments;
+        await termination.save();
+        return termination;
+    }
+    async createClearanceChecklist(dto) {
+        const departments = dto.departments || ['IT', 'Finance', 'Facilities', 'HR', 'Admin'];
+        const items = departments.map(dept => ({
+            department: dept,
+            status: approval_status_enum_1.ApprovalStatus.PENDING,
+        }));
+        const equipmentList = dto.equipmentList?.map(eq => ({
+            name: eq.name,
+            equipmentId: eq.equipmentId ? new mongoose_2.Types.ObjectId(eq.equipmentId) : undefined,
+            returned: false,
+        })) || [];
+        const clearance = await this.clearanceModel.create({
+            terminationId: new mongoose_2.Types.ObjectId(dto.terminationId),
+            items,
+            equipmentList,
+            cardReturned: false,
+        });
+        return clearance;
+    }
+    async updateClearanceChecklist(id, dto) {
+        const clearance = await this.clearanceModel
+            .findByIdAndUpdate(id, dto, { new: true })
+            .exec();
+        if (!clearance)
+            throw new common_1.NotFoundException('Clearance checklist not found');
+        return clearance;
+    }
+    async getClearanceChecklist(terminationId) {
+        return this.clearanceModel
+            .findOne({ terminationId: new mongoose_2.Types.ObjectId(terminationId) })
+            .exec();
+    }
+    async updateClearanceItem(checklistId, itemId, dto) {
+        const clearance = await this.clearanceModel.findById(checklistId).exec();
+        if (!clearance)
+            throw new common_1.NotFoundException('Clearance checklist not found');
+        const item = clearance.items.id(itemId);
+        if (!item)
+            throw new common_1.NotFoundException('Clearance item not found');
+        if (dto.status)
+            item.status = dto.status;
+        if (dto.comments)
+            item.comments = dto.comments;
+        item.updatedBy = new mongoose_2.Types.ObjectId(dto.updatedBy);
+        item.updatedAt = new Date();
+        await clearance.save();
+        return clearance;
+    }
+    async approveClearanceItem(checklistId, itemId, dto) {
+        const clearance = await this.clearanceModel.findById(checklistId).exec();
+        if (!clearance)
+            throw new common_1.NotFoundException('Clearance checklist not found');
+        const item = clearance.items.id(itemId);
+        if (!item)
+            throw new common_1.NotFoundException('Clearance item not found');
+        item.status = approval_status_enum_1.ApprovalStatus.APPROVED;
+        if (dto.comments)
+            item.comments = dto.comments;
+        item.updatedBy = new mongoose_2.Types.ObjectId(dto.updatedBy);
+        item.updatedAt = new Date();
+        await clearance.save();
+        return clearance;
+    }
+    async getClearanceProgress(checklistId) {
+        const clearance = await this.clearanceModel.findById(checklistId).exec();
+        if (!clearance)
+            throw new common_1.NotFoundException('Clearance checklist not found');
+        const totalItems = clearance.items.length;
+        const approvedItems = clearance.items.filter((item) => item.status === approval_status_enum_1.ApprovalStatus.APPROVED).length;
+        const totalEquipment = clearance.equipmentList.length;
+        const returnedEquipment = clearance.equipmentList.filter((eq) => eq.returned === true).length;
+        const allItemsApproved = totalItems > 0 ? approvedItems === totalItems : true;
+        const allEquipmentReturned = totalEquipment > 0 ? returnedEquipment === totalEquipment : true;
+        const cardReturned = clearance.cardReturned;
+        const isComplete = allItemsApproved && allEquipmentReturned && cardReturned;
+        return {
+            totalItems,
+            approvedItems,
+            totalEquipment,
+            returnedEquipment,
+            cardReturned,
+            isComplete,
+            progress: {
+                items: totalItems > 0 ? Math.round((approvedItems / totalItems) * 100) : 100,
+                equipment: totalEquipment > 0 ? Math.round((returnedEquipment / totalEquipment) * 100) : 100,
+            },
+            clearance,
+        };
+    }
 };
 exports.RecruitmentService = RecruitmentService;
 exports.RecruitmentService = RecruitmentService = __decorate([
@@ -450,7 +821,17 @@ exports.RecruitmentService = RecruitmentService = __decorate([
     __param(5, (0, mongoose_1.InjectModel)(assessment_result_schema_1.AssessmentResult.name)),
     __param(6, (0, mongoose_1.InjectModel)(referral_schema_1.Referral.name)),
     __param(7, (0, mongoose_1.InjectModel)(offer_schema_1.Offer.name)),
+    __param(8, (0, mongoose_1.InjectModel)(contract_schema_1.Contract.name)),
+    __param(9, (0, mongoose_1.InjectModel)(document_schema_1.Document.name)),
+    __param(10, (0, mongoose_1.InjectModel)(onboarding_schema_1.Onboarding.name)),
+    __param(11, (0, mongoose_1.InjectModel)(termination_request_schema_1.TerminationRequest.name)),
+    __param(12, (0, mongoose_1.InjectModel)(clearance_checklist_schema_1.ClearanceChecklist.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,

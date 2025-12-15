@@ -48,7 +48,7 @@ __decorate([
     __metadata("design:type", String)
 ], EmployeeTerminationResignation.prototype, "status", void 0);
 exports.EmployeeTerminationResignation = EmployeeTerminationResignation = __decorate([
-    (0, mongoose_1.Schema)({ timestamps: true })
+    (0, mongoose_1.Schema)({ timestamps: true, collection: 'employeeterminationresignations' })
 ], EmployeeTerminationResignation);
 exports.EmployeeTerminationResignationSchema = mongoose_1.SchemaFactory.createForClass(EmployeeTerminationResignation);
 //# sourceMappingURL=EmployeeTerminationResignation.schema.js.map

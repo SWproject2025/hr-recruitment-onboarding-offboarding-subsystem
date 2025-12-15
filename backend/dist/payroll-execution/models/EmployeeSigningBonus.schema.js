@@ -47,7 +47,7 @@ __decorate([
     __metadata("design:type", String)
 ], employeeSigningBonus.prototype, "status", void 0);
 exports.employeeSigningBonus = employeeSigningBonus = __decorate([
-    (0, mongoose_1.Schema)({ timestamps: true })
+    (0, mongoose_1.Schema)({ timestamps: true, collection: 'employeesigningbonus' })
 ], employeeSigningBonus);
 exports.employeeSigningBonusSchema = mongoose_1.SchemaFactory.createForClass(employeeSigningBonus);
 //# sourceMappingURL=EmployeeSigningBonus.schema.js.map

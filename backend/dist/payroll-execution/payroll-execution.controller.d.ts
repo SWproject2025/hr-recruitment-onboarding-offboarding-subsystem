@@ -90,11 +90,11 @@ export declare class PayrollExecutionController {
     } & {
         __v: number;
     }>;
-    startPayrollInitiation(startPayrollInitiationDto: StartPayrollInitiationDto): Promise<import("mongoose").Document<unknown, {}, import("./models/payrollRuns.schema").payrollRuns, {}, {}> & import("./models/payrollRuns.schema").payrollRuns & {
+    startPayrollInitiation(startPayrollInitiationDto: StartPayrollInitiationDto): Promise<(import("mongoose").Document<unknown, {}, import("./models/payrollRuns.schema").payrollRuns, {}, {}> & import("./models/payrollRuns.schema").payrollRuns & {
         _id: import("mongoose").Types.ObjectId;
     } & {
         __v: number;
-    }>;
+    }) | null>;
     checkPreRunApprovalsComplete(): Promise<{
         allApprovalsComplete: boolean;
         pendingSigningBonuses: number;
@@ -136,6 +136,11 @@ export declare class PayrollExecutionController {
         runId: string;
         reason: string;
     }>;
+    getAllPayrollRuns(status?: string, entity?: string, startDate?: string, endDate?: string): Promise<(import("mongoose").Document<unknown, {}, import("./models/payrollRuns.schema").payrollRuns, {}, {}> & import("./models/payrollRuns.schema").payrollRuns & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    })[]>;
     freezePayroll(runId: string, body: {
         reason?: string;
     }): Promise<{
@@ -265,5 +270,34 @@ export declare class PayrollExecutionController {
         } & {
             __v: number;
         })[];
+    }>;
+    getAllPayslips(runId?: string, employeeName?: string, department?: string): Promise<{
+        _id: import("mongoose").Types.ObjectId;
+        employeeId: any;
+        employeeName: string;
+        employeeCode: any;
+        department: any;
+        runPeriod: any;
+        grossSalary: number;
+        deductions: number;
+        netPay: number;
+        status: import("./enums/payroll-execution-enum").PaySlipPaymentStatus;
+        earnings: {
+            baseSalary: number;
+            allowances: any;
+            bonuses: any;
+            benefits: any;
+            refunds: any;
+        };
+        deductionsBreakdown: {
+            taxes: any;
+            insurance: any;
+            penalties: number;
+        };
+    }[]>;
+    getPayslipById(id: string): Promise<import("mongoose").Document<unknown, {}, import("./models/payslip.schema").paySlip, {}, {}> & import("./models/payslip.schema").paySlip & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
     }>;
 }

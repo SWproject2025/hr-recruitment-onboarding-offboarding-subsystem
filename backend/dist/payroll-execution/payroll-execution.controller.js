@@ -100,6 +100,10 @@ let PayrollExecutionController = class PayrollExecutionController {
     async rejectByFinanceStaff(runId, body) {
         return await this.payrollExecutionService.rejectByFinanceStaff(runId, body.reason, body.approverId);
     }
+    async getAllPayrollRuns(status, entity, startDate, endDate) {
+        const filters = { status, entity, startDate, endDate };
+        return await this.payrollExecutionService.getAllPayrollRuns(filters);
+    }
     async freezePayroll(runId, body) {
         return await this.payrollExecutionService.freezePayroll(runId, body.reason);
     }
@@ -138,6 +142,12 @@ let PayrollExecutionController = class PayrollExecutionController {
     }
     async getPayrollForFinanceReview(runId) {
         return await this.payrollExecutionService.getPayrollForFinanceReview(runId);
+    }
+    async getAllPayslips(runId, employeeName, department) {
+        return await this.payrollExecutionService.getAllPayslips(runId, employeeName, department);
+    }
+    async getPayslipById(id) {
+        return await this.payrollExecutionService.getPayslipById(id);
     }
 };
 exports.PayrollExecutionController = PayrollExecutionController;
@@ -331,6 +341,17 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PayrollExecutionController.prototype, "rejectByFinanceStaff", null);
 __decorate([
+    (0, common_1.Get)('payroll-runs'),
+    (0, roles_decorator_1.Roles)(employee_profile_enums_1.SystemRole.PAYROLL_SPECIALIST, employee_profile_enums_1.SystemRole.PAYROLL_MANAGER),
+    __param(0, (0, common_1.Query)('status')),
+    __param(1, (0, common_1.Query)('entity')),
+    __param(2, (0, common_1.Query)('startDate')),
+    __param(3, (0, common_1.Query)('endDate')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:returntype", Promise)
+], PayrollExecutionController.prototype, "getAllPayrollRuns", null);
+__decorate([
     (0, common_1.Patch)('payroll-runs/:runId/freeze'),
     (0, roles_decorator_1.Roles)(employee_profile_enums_1.SystemRole.PAYROLL_MANAGER, employee_profile_enums_1.SystemRole.FINANCE_STAFF),
     __param(0, (0, common_1.Param)('runId')),
@@ -439,6 +460,24 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], PayrollExecutionController.prototype, "getPayrollForFinanceReview", null);
+__decorate([
+    (0, common_1.Get)('payslips'),
+    (0, roles_decorator_1.Roles)(employee_profile_enums_1.SystemRole.PAYROLL_SPECIALIST, employee_profile_enums_1.SystemRole.PAYROLL_MANAGER, employee_profile_enums_1.SystemRole.FINANCE_STAFF),
+    __param(0, (0, common_1.Query)('runId')),
+    __param(1, (0, common_1.Query)('employeeName')),
+    __param(2, (0, common_1.Query)('department')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], PayrollExecutionController.prototype, "getAllPayslips", null);
+__decorate([
+    (0, common_1.Get)('payslips/:id'),
+    (0, roles_decorator_1.Roles)(employee_profile_enums_1.SystemRole.PAYROLL_SPECIALIST, employee_profile_enums_1.SystemRole.PAYROLL_MANAGER, employee_profile_enums_1.SystemRole.FINANCE_STAFF),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], PayrollExecutionController.prototype, "getPayslipById", null);
 exports.PayrollExecutionController = PayrollExecutionController = __decorate([
     (0, common_1.Controller)('payroll-execution'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_gaurd_1.RolesGuard),

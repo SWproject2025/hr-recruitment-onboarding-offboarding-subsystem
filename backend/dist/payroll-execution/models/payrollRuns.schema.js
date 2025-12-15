@@ -72,7 +72,7 @@ __decorate([
     __metadata("design:type", String)
 ], payrollRuns.prototype, "paymentStatus", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true, type: mongoose_2.default.Schema.Types.ObjectId, ref: employee_profile_schema_1.EmployeeProfile.name }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.default.Schema.Types.ObjectId, ref: employee_profile_schema_1.EmployeeProfile.name }),
     __metadata("design:type", mongoose_2.default.Schema.Types.ObjectId)
 ], payrollRuns.prototype, "payrollManagerId", void 0);
 __decorate([
@@ -96,7 +96,7 @@ __decorate([
     __metadata("design:type", Date)
 ], payrollRuns.prototype, "financeApprovalDate", void 0);
 exports.payrollRuns = payrollRuns = __decorate([
-    (0, mongoose_1.Schema)({ timestamps: true })
+    (0, mongoose_1.Schema)({ timestamps: true, collection: 'payrollruns' })
 ], payrollRuns);
 exports.payrollRunsSchema = mongoose_1.SchemaFactory.createForClass(payrollRuns);
 //# sourceMappingURL=payrollRuns.schema.js.map

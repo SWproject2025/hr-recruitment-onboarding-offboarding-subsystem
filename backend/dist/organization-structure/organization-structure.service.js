@@ -82,7 +82,8 @@ let OrganizationStructureService = class OrganizationStructureService {
         department.active = false;
         department.endDate = endDate;
         await department.save();
-        await this.positionModel.updateMany({ departmentId: department._id, active: true }, { $set: { active: false, endDate } });
+        const departmentObjectId = new mongoose_2.Types.ObjectId(id);
+        await this.positionModel.updateMany({ departmentId: departmentObjectId, active: true }, { $set: { active: false, endDate } });
         return department;
     }
     async listDepartments() {
@@ -191,8 +192,9 @@ let OrganizationStructureService = class OrganizationStructureService {
         return position;
     }
     async ensureActivePosition(positionId) {
+        const objectId = new mongoose_2.Types.ObjectId(positionId);
         const position = await this.positionModel
-            .findOne({ _id: positionId, active: true })
+            .findOne({ _id: objectId, active: true })
             .exec();
         if (!position) {
             throw new common_1.BadRequestException('Position must exist and be active');
@@ -202,7 +204,8 @@ let OrganizationStructureService = class OrganizationStructureService {
     async createJobRequisition(dto) {
         const departmentObjectId = await this.ensureActiveDepartment(dto.departmentId);
         const position = await this.ensureActivePosition(dto.positionId);
-        if (!position.departmentId.equals(departmentObjectId)) {
+        const positionDeptId = position.departmentId;
+        if (!positionDeptId.equals(departmentObjectId)) {
             throw new common_1.BadRequestException('Position must belong to the specified department');
         }
         if (dto.openings <= 0) {
@@ -211,7 +214,7 @@ let OrganizationStructureService = class OrganizationStructureService {
         const jobReq = new this.jobReqModel({
             jobTitle: dto.jobTitle,
             departmentId: departmentObjectId,
-            positionId: position._id,
+            positionId: new mongoose_2.Types.ObjectId(position.id),
             location: dto.location,
             openings: dto.openings,
             qualifications: dto.qualifications ?? [],
@@ -231,10 +234,11 @@ let OrganizationStructureService = class OrganizationStructureService {
         }
         if (dto.positionId) {
             const position = await this.ensureActivePosition(dto.positionId);
-            jobReq.positionId = position._id;
+            jobReq.positionId = new mongoose_2.Types.ObjectId(position.id);
             if (dto.departmentId) {
                 const deptId = jobReq.departmentId;
-                if (!position.departmentId.equals(deptId)) {
+                const positionDeptId = position.departmentId;
+                if (!positionDeptId.equals(deptId)) {
                     throw new common_1.BadRequestException('Position must belong to the specified department');
                 }
             }

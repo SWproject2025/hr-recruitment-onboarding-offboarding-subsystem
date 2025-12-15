@@ -27,10 +27,10 @@ const create_refund_dto_1 = require("./dto/refunds/create-refund.dto");
 const tax_report_dto_1 = require("./dto/reports/tax-report.dto");
 const payroll_report_dto_1 = require("./dto/reports/payroll-report.dto");
 const department_report_dto_1 = require("./dto/reports/department-report.dto");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_guard_1 = require("../auth/guards/roles.guard");
-const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const roles_gaurd_1 = require("../Common/Gaurds/roles.gaurd");
+const roles_decorator_1 = require("../Common/Decorators/roles.decorator");
+const current_user_decorator_1 = require("../Common/Decorators/current-user.decorator");
 const employee_profile_enums_1 = require("../employee-profile/enums/employee-profile.enums");
 let PayrollTrackingController = class PayrollTrackingController {
     payrollTrackingService;
@@ -479,7 +479,7 @@ __decorate([
 ], PayrollTrackingController.prototype, "getYearEndSummary", null);
 exports.PayrollTrackingController = PayrollTrackingController = __decorate([
     (0, common_1.Controller)('payroll-tracking'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_gaurd_1.RolesGuard),
     __metadata("design:paramtypes", [payroll_tracking_service_1.PayrollTrackingService])
 ], PayrollTrackingController);
 //# sourceMappingURL=payroll-tracking.controller.js.map
