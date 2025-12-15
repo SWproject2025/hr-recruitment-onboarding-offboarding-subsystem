@@ -120,7 +120,7 @@ export function ContractForm({ initialData, onSubmit, onCancel }: ContractFormPr
             id="offerId"
             value={formData.offerId}
             onChange={(e) => handleInputChange('offerId', e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            className={`w-full px-3 py-2 border rounded-md text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               errors.offerId ? 'border-red-300' : 'border-gray-300'
             }`}
             placeholder="Enter offer ID..."
@@ -151,7 +151,7 @@ export function ContractForm({ initialData, onSubmit, onCancel }: ContractFormPr
           id="role"
           value={formData.role}
           onChange={(e) => handleInputChange('role', e.target.value)}
-          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          className={`w-full px-3 py-2 border rounded-md text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             errors.role ? 'border-red-300' : 'border-gray-300'
           }`}
           placeholder="e.g., Senior Software Engineer"
@@ -172,7 +172,7 @@ export function ContractForm({ initialData, onSubmit, onCancel }: ContractFormPr
               id="grossSalary"
               value={formData.grossSalary}
               onChange={(e) => handleInputChange('grossSalary', e.target.value)}
-              className={`w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`w-full pl-8 pr-3 py-2 border rounded-md text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.grossSalary ? 'border-red-300' : 'border-gray-300'
               }`}
               placeholder="0.00"
@@ -194,7 +194,7 @@ export function ContractForm({ initialData, onSubmit, onCancel }: ContractFormPr
               id="signingBonus"
               value={formData.signingBonus}
               onChange={(e) => handleInputChange('signingBonus', e.target.value)}
-              className={`w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`w-full pl-8 pr-3 py-2 border rounded-md text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.signingBonus ? 'border-red-300' : 'border-gray-300'
               }`}
               placeholder="0.00"
@@ -220,7 +220,7 @@ export function ContractForm({ initialData, onSubmit, onCancel }: ContractFormPr
             id="startDate"
             value={formData.startDate}
             onChange={(e) => handleInputChange('startDate', e.target.value)}
-            className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            className={`w-full pl-10 pr-3 py-2 border rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               errors.startDate ? 'border-red-300' : 'border-gray-300'
             }`}
           />
