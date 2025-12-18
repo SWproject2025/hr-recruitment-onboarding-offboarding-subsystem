@@ -127,6 +127,7 @@ const Dashboard = () => {
       { id: 3, type: "Performance Review", employee: "Mohamed Ibrahim", department: "Marketing", priority: "High", status: "In Progress" },
       { id: 4, type: "Onboarding Task", employee: "Sara Ahmed", department: "Finance", priority: "High", status: "Pending IT" },
       { id: 5, type: "Exit Interview", employee: "Youssef Mahmoud", department: "Operations", priority: "Medium", status: "Scheduled" },
+      { id: 6, type: "Termination Request", employee: "Youssef Mahmoud", department: "Operations", priority: "High", status: "Pending HR Approval" },
     ],
     []
   );

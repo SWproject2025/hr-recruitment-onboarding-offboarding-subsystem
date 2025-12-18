@@ -84,6 +84,7 @@ export const Sidebar = () => {
           { id: "contracts", label: "Contracts", path: "/contracts" },
           { id: "documents", label: "Documents", path: "/documents" },
           { id: "onboarding", label: "Onboarding", path: "/onboarding" },
+          { id: "termination", label: "Termination", path: "/termination" },
         ],
       },
       { id: "reports", icon: TrendingUp, label: "Reports", path: "/reports" },
