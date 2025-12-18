@@ -46,15 +46,18 @@ export const Sidebar = () => {
           { id: 'tax-documents', label: 'Tax Documents', path: '/employee-portal/tax-documents' }
         ]
       },
-      {
-        id: 'recruitment',
-        icon: Users,
-        label: 'Recruitment',
-        submenu: [
-          { id: 'contracts', label: 'Contracts', path: '/contracts' },
-          { id: 'documents', label: 'Documents', path: '/documents' }
-        ]
-      },
+{
+  id: 'recruitment',
+  icon: Users,
+  label: 'Recruitment',
+  submenu: [
+    { id: 'contracts', label: 'Contracts', path: '/contracts' },
+    { id: 'documents', label: 'Documents', path: '/documents' },
+
+     { id: 'termination', label: 'Termination', path: '/termination', badge: 3 }
+  ]
+},
+
       { id: 'reports', icon: TrendingUp, label: 'Reports', path: '/reports' }
     ];
   
@@ -101,7 +104,14 @@ export const Sidebar = () => {
                       }`}
                     >
                       <FileText size={14} />
-                      <span className="text-left">{subItem.label}</span>
+                      <span className="flex-1 text-left">{subItem.label}</span>
+
+{subItem.badge && (
+  <span className="ml-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+    {subItem.badge}
+  </span>
+)}
+
                     </button>
                   ))}
                 </div>
