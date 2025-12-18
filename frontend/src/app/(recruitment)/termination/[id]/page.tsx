@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { offboardingService } from '@/lib/offboardingService';
 
 import TerminationDetailCard from '@/components/termination/TerminationDetailCard';
-import TerminationActionButtons from '@/components/termination/TerminationActionButtons';
+import TerminationActionButtons from '@/components/termination/TerminationActionsButtons';
 import TerminationAuditTrail from '@/components/termination/TerminationAuditTrail';
 
 export default function TerminationDetailPage({

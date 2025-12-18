@@ -132,7 +132,7 @@ export default function OnboardingPage() {
         <div className="text-sm text-red-600">{error}</div>
       ) : (
         <OnboardingsList
-          items={progressList}
+          items={listFiltered}
           onView={(id) => router.push(`/onboarding/${id}`)}
         />
       )}

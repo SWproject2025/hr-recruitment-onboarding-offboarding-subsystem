@@ -10,11 +10,34 @@ export default function TerminationPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = () => {
+    setLoading(true);
     offboardingService
       .getTerminations()
       .then((res) => setData(res.data))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  const handleApprove = async (id: string) => {
+    try {
+      await offboardingService.approveTermination(id, {});
+      loadData();
+    } catch (error) {
+      console.error('Failed to approve termination:', error);
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    try {
+      await offboardingService.rejectTermination(id, { hrComments: 'Rejected by HR' });
+      loadData();
+    } catch (error) {
+      console.error('Failed to reject termination:', error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -41,7 +64,11 @@ export default function TerminationPage() {
       {loading ? (
         <div className="text-gray-500">Loading termination requests...</div>
       ) : (
-        <TerminationTable data={data} />
+        <TerminationTable
+          data={data}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
       )}
     </div>
   );
