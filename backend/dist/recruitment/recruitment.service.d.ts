@@ -877,4 +877,18 @@ export declare class RecruitmentService {
             _id: Types.ObjectId;
         }>;
     }>;
+    markEquipmentReturned(checklistId: string, equipmentId: string, dto: {
+        returned: boolean;
+        condition?: string;
+    }): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, ClearanceChecklist, {}, {}> & ClearanceChecklist & {
+        _id: Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: Types.ObjectId;
+    }>>;
 }

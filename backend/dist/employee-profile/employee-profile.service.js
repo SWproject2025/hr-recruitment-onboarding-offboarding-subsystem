@@ -22,6 +22,7 @@ const candidate_schema_1 = require("./models/candidate.schema");
 const employee_system_role_schema_1 = require("./models/employee-system-role.schema");
 const qualification_schema_1 = require("./models/qualification.schema");
 const employee_profile_enums_1 = require("./enums/employee-profile.enums");
+const employee_profile_enums_2 = require("./enums/employee-profile.enums");
 let EmployeeProfileService = class EmployeeProfileService {
     employeeProfileModel;
     changeRequestModel;
@@ -102,6 +103,38 @@ let EmployeeProfileService = class EmployeeProfileService {
         if (!updated)
             throw new common_1.NotFoundException(`Employee profile with ID ${employeeId} not found`);
         return updated;
+    }
+    async createCandidate(dto) {
+        const candidate = new this.candidateModel({
+            ...dto,
+            departmentId: dto.departmentId ? new mongoose_2.Types.ObjectId(dto.departmentId) : undefined,
+            positionId: dto.positionId ? new mongoose_2.Types.ObjectId(dto.positionId) : undefined,
+            status: employee_profile_enums_2.CandidateStatus.APPLIED,
+            applicationDate: dto.applicationDate ? new Date(dto.applicationDate) : new Date(),
+        });
+        return candidate.save();
+    }
+    async getAllCandidates() {
+        return this.candidateModel.find().exec();
+    }
+    async getCandidateById(id) {
+        const candidate = await this.candidateModel.findById(id).exec();
+        if (!candidate)
+            throw new common_1.NotFoundException(`Candidate with ID ${id} not found`);
+        return candidate;
+    }
+    async updateCandidate(id, updateData) {
+        const updated = await this.candidateModel
+            .findByIdAndUpdate(id, { $set: updateData }, { new: true })
+            .exec();
+        if (!updated)
+            throw new common_1.NotFoundException(`Candidate with ID ${id} not found`);
+        return updated;
+    }
+    async deleteCandidate(id) {
+        const result = await this.candidateModel.findByIdAndDelete(id).exec();
+        if (!result)
+            throw new common_1.NotFoundException(`Candidate with ID ${id} not found`);
     }
 };
 exports.EmployeeProfileService = EmployeeProfileService;

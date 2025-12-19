@@ -1,8 +1,9 @@
 export declare class CreateContractDto {
-    applicationId: string;
-    contractType: string;
-    startDate: string;
-    endDate: string;
-    fileUrl: string;
-    createdBy: string;
+    offerId: string;
+    acceptanceDate?: string;
+    grossSalary: number;
+    signingBonus?: number;
+    role?: string;
+    benefits?: string[];
+    documentId?: string;
 }

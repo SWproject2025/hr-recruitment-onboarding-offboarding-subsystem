@@ -8,6 +8,8 @@ import { EmployeeSystemRole } from './models/employee-system-role.schema';
 import { EmployeeQualification } from './models/qualification.schema';
 import { ProfileChangeStatus } from './enums/employee-profile.enums';
 import { UpdateContactDto } from './dto/update-contact.dto';
+import { CreateCandidateDto } from './dto/create-candidate.dto';
+import { CandidateStatus } from './enums/employee-profile.enums';
 
 @Injectable()
 export class EmployeeProfileService {
@@ -105,7 +107,7 @@ export class EmployeeProfileService {
 
   // --- 7. Master Data Management (HR Admin Full Update) ---
   async adminUpdateProfile(
-    employeeId: string, 
+    employeeId: string,
     updateData: any
   ): Promise<EmployeeProfile> {
     const updated = await this.employeeProfileModel
@@ -115,5 +117,40 @@ export class EmployeeProfileService {
     if (!updated) throw new NotFoundException(`Employee profile with ID ${employeeId} not found`);
 
     return updated;
+  }
+
+  // --- 8. Candidate Management ---
+  async createCandidate(dto: CreateCandidateDto): Promise<Candidate> {
+    const candidate = new this.candidateModel({
+      ...dto,
+      departmentId: dto.departmentId ? new Types.ObjectId(dto.departmentId) : undefined,
+      positionId: dto.positionId ? new Types.ObjectId(dto.positionId) : undefined,
+      status: CandidateStatus.APPLIED,
+      applicationDate: dto.applicationDate ? new Date(dto.applicationDate) : new Date(),
+    });
+    return candidate.save();
+  }
+
+  async getAllCandidates(): Promise<Candidate[]> {
+    return this.candidateModel.find().exec();
+  }
+
+  async getCandidateById(id: string): Promise<Candidate> {
+    const candidate = await this.candidateModel.findById(id).exec();
+    if (!candidate) throw new NotFoundException(`Candidate with ID ${id} not found`);
+    return candidate;
+  }
+
+  async updateCandidate(id: string, updateData: any): Promise<Candidate> {
+    const updated = await this.candidateModel
+      .findByIdAndUpdate(id, { $set: updateData }, { new: true })
+      .exec();
+    if (!updated) throw new NotFoundException(`Candidate with ID ${id} not found`);
+    return updated;
+  }
+
+  async deleteCandidate(id: string): Promise<void> {
+    const result = await this.candidateModel.findByIdAndDelete(id).exec();
+    if (!result) throw new NotFoundException(`Candidate with ID ${id} not found`);
   }
 }

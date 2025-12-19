@@ -181,7 +181,7 @@ export class RecruitmentService {
       newStage,
       oldStatus,
       newStatus,
-      changedBy,
+      changedBy: new Types.ObjectId(changedBy),
     });
   }
 
@@ -360,9 +360,10 @@ export class RecruitmentService {
 
   async updateApplicationStage(id: string, dto: UpdateApplicationStageDto) {
     const app = await this.findOneApplication(id);
-    const requisition = await this.findOneJobRequisition(
-      app.requisitionId.toString(),
-    );
+    const requisitionId = app.requisitionId instanceof Types.ObjectId
+      ? app.requisitionId.toString()
+      : (app.requisitionId as any)._id.toString();
+    const requisition = await this.findOneJobRequisition(requisitionId);
 
     const oldStage = app.currentStage;
     const newStage = dto.newStage;
@@ -661,6 +662,15 @@ export class RecruitmentService {
     const offer = await this.offerModel.create({
       applicationId: new Types.ObjectId(dto.applicationId),
       candidateId: new Types.ObjectId(dto.candidateId),
+      hrEmployeeId: dto.hrEmployeeId ? new Types.ObjectId(dto.hrEmployeeId) : undefined,
+      grossSalary: dto.grossSalary,
+      signingBonus: dto.signingBonus,
+      benefits: dto.benefits,
+      conditions: dto.conditions,
+      insurances: dto.insurances,
+      content: dto.content,
+      role: dto.role,
+      deadline: dto.deadline ? new Date(dto.deadline) : undefined,
     });
 
     await this.logHistory(
@@ -759,7 +769,15 @@ export class RecruitmentService {
   // ==================== CONTRACTS METHODS ====================
 
   async createContract(dto: CreateContractDto) {
-    const contract = await this.contractModel.create(dto);
+    const contract = await this.contractModel.create({
+      offerId: new Types.ObjectId(dto.offerId),
+      acceptanceDate: dto.acceptanceDate ? new Date(dto.acceptanceDate) : new Date(),
+      grossSalary: dto.grossSalary,
+      signingBonus: dto.signingBonus,
+      role: dto.role,
+      benefits: dto.benefits,
+      documentId: dto.documentId ? new Types.ObjectId(dto.documentId) : undefined,
+    });
     return contract;
   }
 
@@ -810,7 +828,9 @@ export class RecruitmentService {
 
   async uploadDocument(dto: CreateDocumentDto) {
     const document = await this.documentModel.create({
-      ...dto,
+      ownerId: dto.ownerId ? new Types.ObjectId(dto.ownerId) : undefined,
+      type: dto.type,
+      filePath: dto.filePath,
       uploadedAt: new Date(),
     });
     return document;
@@ -1179,5 +1199,23 @@ export class RecruitmentService {
       },
       clearance,
     };
+  }
+
+  async markEquipmentReturned(
+    checklistId: string,
+    equipmentId: string,
+    dto: { returned: boolean; condition?: string },
+  ) {
+    const clearance = await this.clearanceModel.findById(checklistId).exec();
+    if (!clearance) throw new NotFoundException('Clearance checklist not found');
+
+    const equipment = (clearance.equipmentList as any).id(equipmentId);
+    if (!equipment) throw new NotFoundException('Equipment not found');
+
+    equipment.returned = dto.returned;
+    if (dto.condition) equipment.condition = dto.condition;
+
+    await clearance.save();
+    return clearance;
   }
 }

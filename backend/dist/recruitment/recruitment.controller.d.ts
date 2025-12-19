@@ -837,4 +837,18 @@ export declare class RecruitmentController {
             _id: import("mongoose").Types.ObjectId;
         }>;
     }>;
+    markEquipmentReturned(id: string, equipmentId: string, dto: {
+        returned: boolean;
+        condition?: string;
+    }): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, import("./models/clearance-checklist.schema").ClearanceChecklist, {}, {}> & import("./models/clearance-checklist.schema").ClearanceChecklist & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }, {}, {}> & import("mongoose").Document<unknown, {}, import("./models/clearance-checklist.schema").ClearanceChecklist, {}, {}> & import("./models/clearance-checklist.schema").ClearanceChecklist & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    } & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }>>;
 }

@@ -516,4 +516,13 @@ export class RecruitmentController {
   getClearanceProgress(@Param('id') id: string) {
     return this.recruitmentService.getClearanceProgress(id);
   }
+
+  @Patch('clearance/:id/equipment/:equipmentId')
+  markEquipmentReturned(
+    @Param('id') id: string,
+    @Param('equipmentId') equipmentId: string,
+    @Body() dto: { returned: boolean; condition?: string },
+  ) {
+    return this.recruitmentService.markEquipmentReturned(id, equipmentId, dto);
+  }
 }

@@ -278,6 +278,9 @@ let RecruitmentController = class RecruitmentController {
     getClearanceProgress(id) {
         return this.recruitmentService.getClearanceProgress(id);
     }
+    markEquipmentReturned(id, equipmentId, dto) {
+        return this.recruitmentService.markEquipmentReturned(id, equipmentId, dto);
+    }
 };
 exports.RecruitmentController = RecruitmentController;
 __decorate([
@@ -813,6 +816,15 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], RecruitmentController.prototype, "getClearanceProgress", null);
+__decorate([
+    (0, common_1.Patch)('clearance/:id/equipment/:equipmentId'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('equipmentId')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", void 0)
+], RecruitmentController.prototype, "markEquipmentReturned", null);
 exports.RecruitmentController = RecruitmentController = __decorate([
     (0, common_1.Controller)('recruitment'),
     __metadata("design:paramtypes", [recruitment_service_1.RecruitmentService])

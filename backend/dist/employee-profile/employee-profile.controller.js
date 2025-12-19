@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const employee_profile_service_1 = require("./employee-profile.service");
 const update_contact_dto_1 = require("./dto/update-contact.dto");
 const change_request_dto_1 = require("./dto/change-request.dto");
+const create_candidate_dto_1 = require("./dto/create-candidate.dto");
 let EmployeeProfileController = class EmployeeProfileController {
     employeeProfileService;
     constructor(employeeProfileService) {
@@ -39,6 +40,21 @@ let EmployeeProfileController = class EmployeeProfileController {
     }
     async adminUpdate(id, dto, req) {
         return this.employeeProfileService.adminUpdateProfile(id, dto);
+    }
+    async createCandidate(dto) {
+        return this.employeeProfileService.createCandidate(dto);
+    }
+    async getAllCandidates() {
+        return this.employeeProfileService.getAllCandidates();
+    }
+    async getCandidateById(id) {
+        return this.employeeProfileService.getCandidateById(id);
+    }
+    async updateCandidate(id, dto) {
+        return this.employeeProfileService.updateCandidate(id, dto);
+    }
+    async deleteCandidate(id) {
+        return this.employeeProfileService.deleteCandidate(id);
     }
 };
 exports.EmployeeProfileController = EmployeeProfileController;
@@ -90,6 +106,41 @@ __decorate([
     __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], EmployeeProfileController.prototype, "adminUpdate", null);
+__decorate([
+    (0, common_1.Post)('candidates'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_candidate_dto_1.CreateCandidateDto]),
+    __metadata("design:returntype", Promise)
+], EmployeeProfileController.prototype, "createCandidate", null);
+__decorate([
+    (0, common_1.Get)('candidates'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], EmployeeProfileController.prototype, "getAllCandidates", null);
+__decorate([
+    (0, common_1.Get)('candidates/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], EmployeeProfileController.prototype, "getCandidateById", null);
+__decorate([
+    (0, common_1.Put)('candidates/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], EmployeeProfileController.prototype, "updateCandidate", null);
+__decorate([
+    (0, common_1.Delete)('candidates/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], EmployeeProfileController.prototype, "deleteCandidate", null);
 exports.EmployeeProfileController = EmployeeProfileController = __decorate([
     (0, common_1.Controller)('employee-profile'),
     __metadata("design:paramtypes", [employee_profile_service_1.EmployeeProfileService])

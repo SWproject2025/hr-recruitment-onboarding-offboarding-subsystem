@@ -2,10 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateDocumentDto = void 0;
 class CreateDocumentDto {
-    applicationId;
+    ownerId;
     type;
-    fileUrl;
-    uploadedBy;
+    filePath;
 }
 exports.CreateDocumentDto = CreateDocumentDto;
 //# sourceMappingURL=create-document.dto.js.map

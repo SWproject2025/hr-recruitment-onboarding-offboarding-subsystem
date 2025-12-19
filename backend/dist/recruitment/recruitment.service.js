@@ -73,7 +73,7 @@ let RecruitmentService = class RecruitmentService {
             newStage,
             oldStatus,
             newStatus,
-            changedBy,
+            changedBy: new mongoose_2.Types.ObjectId(changedBy),
         });
     }
     validateStageOrder(oldStage, newStage) {
@@ -205,7 +205,10 @@ let RecruitmentService = class RecruitmentService {
     }
     async updateApplicationStage(id, dto) {
         const app = await this.findOneApplication(id);
-        const requisition = await this.findOneJobRequisition(app.requisitionId.toString());
+        const requisitionId = app.requisitionId instanceof mongoose_2.Types.ObjectId
+            ? app.requisitionId.toString()
+            : app.requisitionId._id.toString();
+        const requisition = await this.findOneJobRequisition(requisitionId);
         const oldStage = app.currentStage;
         const newStage = dto.newStage;
         this.validateStageOrder(oldStage, newStage);
@@ -405,6 +408,15 @@ let RecruitmentService = class RecruitmentService {
         const offer = await this.offerModel.create({
             applicationId: new mongoose_2.Types.ObjectId(dto.applicationId),
             candidateId: new mongoose_2.Types.ObjectId(dto.candidateId),
+            hrEmployeeId: dto.hrEmployeeId ? new mongoose_2.Types.ObjectId(dto.hrEmployeeId) : undefined,
+            grossSalary: dto.grossSalary,
+            signingBonus: dto.signingBonus,
+            benefits: dto.benefits,
+            conditions: dto.conditions,
+            insurances: dto.insurances,
+            content: dto.content,
+            role: dto.role,
+            deadline: dto.deadline ? new Date(dto.deadline) : undefined,
         });
         await this.logHistory(app._id, app.currentStage, app.currentStage, app.status, app.status, dto.changedBy);
         return offer;
@@ -460,7 +472,15 @@ let RecruitmentService = class RecruitmentService {
             .exec();
     }
     async createContract(dto) {
-        const contract = await this.contractModel.create(dto);
+        const contract = await this.contractModel.create({
+            offerId: new mongoose_2.Types.ObjectId(dto.offerId),
+            acceptanceDate: dto.acceptanceDate ? new Date(dto.acceptanceDate) : new Date(),
+            grossSalary: dto.grossSalary,
+            signingBonus: dto.signingBonus,
+            role: dto.role,
+            benefits: dto.benefits,
+            documentId: dto.documentId ? new mongoose_2.Types.ObjectId(dto.documentId) : undefined,
+        });
         return contract;
     }
     async updateContract(id, dto) {
@@ -505,7 +525,9 @@ let RecruitmentService = class RecruitmentService {
     }
     async uploadDocument(dto) {
         const document = await this.documentModel.create({
-            ...dto,
+            ownerId: dto.ownerId ? new mongoose_2.Types.ObjectId(dto.ownerId) : undefined,
+            type: dto.type,
+            filePath: dto.filePath,
             uploadedAt: new Date(),
         });
         return document;
@@ -808,6 +830,19 @@ let RecruitmentService = class RecruitmentService {
             },
             clearance,
         };
+    }
+    async markEquipmentReturned(checklistId, equipmentId, dto) {
+        const clearance = await this.clearanceModel.findById(checklistId).exec();
+        if (!clearance)
+            throw new common_1.NotFoundException('Clearance checklist not found');
+        const equipment = clearance.equipmentList.id(equipmentId);
+        if (!equipment)
+            throw new common_1.NotFoundException('Equipment not found');
+        equipment.returned = dto.returned;
+        if (dto.condition)
+            equipment.condition = dto.condition;
+        await clearance.save();
+        return clearance;
     }
 };
 exports.RecruitmentService = RecruitmentService;

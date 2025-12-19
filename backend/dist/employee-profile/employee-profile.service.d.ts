@@ -5,6 +5,7 @@ import { Candidate } from './models/candidate.schema';
 import { EmployeeSystemRole } from './models/employee-system-role.schema';
 import { EmployeeQualification } from './models/qualification.schema';
 import { UpdateContactDto } from './dto/update-contact.dto';
+import { CreateCandidateDto } from './dto/create-candidate.dto';
 export declare class EmployeeProfileService {
     private employeeProfileModel;
     private changeRequestModel;
@@ -19,4 +20,9 @@ export declare class EmployeeProfileService {
     approveChangeRequest(requestId: string): Promise<EmployeeProfile>;
     rejectChangeRequest(requestId: string): Promise<EmployeeProfileChangeRequest>;
     adminUpdateProfile(employeeId: string, updateData: any): Promise<EmployeeProfile>;
+    createCandidate(dto: CreateCandidateDto): Promise<Candidate>;
+    getAllCandidates(): Promise<Candidate[]>;
+    getCandidateById(id: string): Promise<Candidate>;
+    updateCandidate(id: string, updateData: any): Promise<Candidate>;
+    deleteCandidate(id: string): Promise<void>;
 }
